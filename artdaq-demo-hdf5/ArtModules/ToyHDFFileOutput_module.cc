@@ -82,7 +82,7 @@ art::ToyHDFFileOutput::ToyHDFFileOutput(ParameterSet const& ps)
 	: OutputModule(ps)
 	, file_name_(ps.get<std::string>("fileName", "/tmp/artdaqdemo.hdf5"))
 	, fstats_{name_, processName()}
-	, toy_ntuple_(file_name_)
+	, toy_ntuple_(file_name_, ps.get<size_t>("nADCsPerRow", 512))
 {
 	TLOG(TLVL_DEBUG) << "Begin: ToyHDFFileOutput::ToyHDFFileOutput(ParameterSet const& ps)\n";
 	TLOG(TLVL_DEBUG) << "End: ToyHDFFileOutput::ToyHDFFileOutput(ParameterSet const& ps)\n";
