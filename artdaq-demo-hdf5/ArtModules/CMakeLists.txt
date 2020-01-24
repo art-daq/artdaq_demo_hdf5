@@ -1,6 +1,5 @@
 
-
-simple_plugin(ToyHDFFileOutput "module"
+simple_plugin(HDFFileOutput "module"
   artdaq_ArtModules
   art_Framework_IO
   art_Framework_Services_Registry
@@ -10,8 +9,7 @@ simple_plugin(ToyHDFFileOutput "module"
   cetlib
   ${CETLIB_EXCEPT}
   ${ROOT_RIO}
-  hep_hpc_hdf5
-  ${HDF5_C_LIBRARIES}
+  artdaq-demo-hdf5_HDF5
 )
 
 install_headers(SUBDIRS detail)

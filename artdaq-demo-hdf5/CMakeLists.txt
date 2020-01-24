@@ -1,1 +1,2 @@
 add_subdirectory(ArtModules)
+add_subdirectory(HDF5)
