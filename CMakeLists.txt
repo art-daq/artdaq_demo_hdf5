@@ -111,9 +111,6 @@ include(ArtMake)
 include(BuildPlugins)
 include(CetTest)
 
-# Stephen Varga's H5CPP Library
-add_subdirectory(h5cpp)
-
 # source
 add_subdirectory(artdaq-demo-hdf5)
 

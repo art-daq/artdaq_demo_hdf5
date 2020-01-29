@@ -5,15 +5,30 @@
 #include "artdaq-core/Data/RawEvent.hh"
 #include "fhiclcpp/ParameterSet.h"
 
+#include <unordered_map>
+
 namespace artdaq {
 namespace hdf5 {
+
+enum class FragmentDatasetMode : uint8_t
+{
+	Read = 0,
+	Write = 1
+};
 
 class FragmentDataset
 {
 public:
-	FragmentDataset(fhicl::ParameterSet const&) {}
-	void insert(artdaq::Fragment const& f) { T.insert(f); }
-	void insert(artdaq::detail::RawEventHeader const&) = 0;
+	FragmentDataset(fhicl::ParameterSet const& ps, std::string mode);
+	virtual ~FragmentDataset() = default;
+	virtual void insert(artdaq::Fragment const& f) = 0;
+	virtual void insert(artdaq::detail::RawEventHeader const&) = 0;
+	virtual std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() = 0;
+	virtual std::unique_ptr<artdaq::detail::RawEventHeader> GetEventHeader(artdaq::Fragment::sequence_id_t const&) = 0;
+
+protected:
+	size_t nWordsPerRow_;
+	FragmentDatasetMode mode_;
 };
 
 }  // namespace hdf5
@@ -21,16 +36,12 @@ public:
 
 /** \cond */
 
-#ifndef EXTERN_C_FUNC_DECLARE_START
-#define EXTERN_C_FUNC_DECLARE_START extern "C" {
-#endif
-
-#define DEFINE_ARTDAQ_DATASET_PLUGIN(klass)                                         \
-	EXTERN_C_FUNC_DECLARE_START                                                     \
-	std::unique_ptr<artdaq::TransferInterface> make(fhicl::ParameterSet const& ps)  \
-	{                                                                               \
-		return std::unique_ptr<artdaq::hdf5::FragmentDataset>(new klass(ps, role)); \
-	}                                                                               \
+#define DEFINE_ARTDAQ_DATASET_PLUGIN(klass)                                            \
+	extern "C" {                                                                       \
+	std::unique_ptr<artdaq::hdf5::FragmentDataset> make(fhicl::ParameterSet const& ps) \
+	{                                                                                  \
+		return std::unique_ptr<artdaq::hdf5::FragmentDataset>(new klass(ps));          \
+	}                                                                                  \
 	}
 
 /** \endcond */

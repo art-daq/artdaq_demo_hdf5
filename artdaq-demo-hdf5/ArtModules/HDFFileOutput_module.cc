@@ -1,6 +1,6 @@
 #define TRACE_NAME "HDFFileOutput"
 
-#include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
+#include "artdaq-demo-hdf5/HDF5/MakeDatasetPlugin.hh"
 
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/OutputModule.h"
@@ -72,16 +72,17 @@ private:
 	std::string name_ = "HDFFileOutput";
 	art::FileStatsCollector fstats_;
 
-	std::unqiue_ptr<artdaq::hdf5::FragmentDataset> ntuple_;
+	std::unique_ptr<artdaq::hdf5::FragmentDataset> ntuple_;
 };
 
 art::HDFFileOutput::HDFFileOutput(ParameterSet const& ps)
     : OutputModule(ps)
     , fstats_{name_, processName()}
-    , ntuple_(ps)
 {
 	TLOG(TLVL_DEBUG) << "Begin: HDFFileOutput::HDFFileOutput(ParameterSet const& ps)\n";
-	TLOG(TLVL_DEBUG) << "End: HDFFileOutput::HDFFileOutput(ParameterSet const& ps)\n";
+	ntuple_ = artdaq::hdf5::MakeDatasetPlugin(ps, "dataset");
+	TLOG(TLVL_DEBUG)
+	    << "End: HDFFileOutput::HDFFileOutput(ParameterSet const& ps)\n";
 }
 
 art::HDFFileOutput::~HDFFileOutput() { TLOG(TLVL_DEBUG) << "Begin/End: HDFFileOutput::~HDFFileOutput()\n"; }
@@ -115,6 +116,8 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 #else
 	result_handles = ep.getMany(wrapped, art::MatchAllSelector{});
 #endif
+	auto hdr_found = false;
+	auto sequence_id = artdaq::Fragment::InvalidSequenceID;
 
 	for (auto const& result_handle : result_handles)
 	{
@@ -124,13 +127,14 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 		{
 			for (auto const& fragment : *raw_event_handle)
 			{
-				auto sequence_id = fragment.sequenceID();
+				sequence_id = fragment.sequenceID();
 				auto fragid_id = fragment.fragmentID();
+				auto addr = reinterpret_cast<const void*>(fragment.headerBeginBytes());
+				auto size_bytes = fragment.sizeBytes();
 				TLOG(TLVL_TRACE) << "HDFFileOutput::write seq=" << sequence_id << " frag=" << fragid_id << " "
-				                 << reinterpret_cast<const void*>(fragment.headerBeginBytes()) << " bytes=0x" << std::hex
-				                 << fragment.sizeBytes() << " start";
+				                 << addr << " bytes=0x" << std::hex << size_bytes << " label=" << raw_event_handle.provenance()->productInstanceName() << " start";
 
-				ntuple_.insert(fragment);
+				ntuple_->insert(fragment);
 
 				TLOG(5) << "HDFFileOutput::write seq=" << sequence_id << " frag=" << fragid_id << " done errno=" << errno;
 			}
@@ -142,14 +146,24 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 		{
 			auto const& header = *raw_event_header_handle;
 
-			auto sequence_id = header.sequence_id;
-			TLOG(TLVL_TRACE) << "HDFFileOutput::write header seq=" << sequence_id;
+			auto evt_sequence_id = header.sequence_id;
+			TLOG(TLVL_TRACE) << "HDFFileOutput::write header seq=" << evt_sequence_id;
 
-			ntuple_.insert(header);
+			ntuple_->insert(header);
 
-			TLOG(5) << "HDFFileOutput::write header seq=" << sequence_id << " done errno=" << errno;
+			hdr_found = true;
+			TLOG(5) << "HDFFileOutput::write header seq=" << evt_sequence_id << " done errno=" << errno;
 		}
 	}
+
+	if (!hdr_found)
+	{
+		artdaq::detail::RawEventHeader hdr(ep.run(), ep.subRun(), ep.event(), sequence_id);
+		hdr.is_complete = true;
+
+		ntuple_->insert(hdr);
+	}
+
 #if ART_HEX_VERSION < 0x30000
 	fstats_.recordEvent(ep.id());
 #else

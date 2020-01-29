@@ -4,6 +4,9 @@
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/RawEvent.hh"
 
+#include "hep_hpc/hdf5/Column.hpp"
+#include "hep_hpc/hdf5/Ntuple.hpp"
+
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 
 namespace artdaq {
@@ -22,12 +25,24 @@ public:
 
 	FragmentNtuple(fhicl::ParameterSet const& ps);
 
-	void insert(artdaq::Fragment const& frag);
+	virtual ~FragmentNtuple();
 
-	void insert(artdaq::detail::RawEventHeader const& hdr);
+	void insert(artdaq::Fragment const& frag) override;
+
+	void insert(artdaq::detail::RawEventHeader const& hdr) override;
+
+	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override {
+		TLOG(TLVL_ERROR) << "FragmentNtuple is not capable of reading!";
+		return std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>();
+	}
+
+	std::unique_ptr<artdaq::detail::RawEventHeader> GetEventHeader(artdaq::Fragment::sequence_id_t const&) override
+	{
+		TLOG(TLVL_ERROR) << "FragmentNtuple is not capable of reading!";
+		return nullptr;
+	}
 
 private:
-	size_t nWordsPerRow_;
 	hep_hpc::hdf5::Ntuple<uint64Column, uint16Column, uint64Column, uint8Column, uint64Column, uint64Column, dataColumn> fragments_;
 	hep_hpc::hdf5::Ntuple<uint32Column, uint32Column, uint32Column, uint64Column, uint8Column> eventHeaders_;
 };

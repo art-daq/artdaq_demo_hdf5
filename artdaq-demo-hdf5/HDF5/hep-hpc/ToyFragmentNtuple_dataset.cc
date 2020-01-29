@@ -2,7 +2,7 @@
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
-#include "artdaq-demo-hdf5/HDF5/hep_hpc/FragmentNtuple.hh"
+#include "artdaq-demo-hdf5/HDF5/hep-hpc/ToyFragmentNtuple.hh"
 #include "hep_hpc/hdf5/make_column.hpp"
 #include "hep_hpc/hdf5/make_ntuple.hpp"
 
@@ -25,7 +25,7 @@
 
 artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps)
 
-    : nAdcsPerRow_(ps.get<size_t>("nAdcsPerRow", 512))
+    : FragmentDataset(ps, ps.get<std::string>("mode", "write"))
     , output_(hep_hpc::hdf5::make_ntuple({ps.get<std::string>("fileName", "toyFragments.hdf5"), "TOYFragments"},
                                          hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint16_t>("fragmentID", SCALAR_PROPERTIES),
@@ -37,9 +37,19 @@ artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps
                                          hep_hpc::hdf5::make_scalar_column<uint8_t>("distribution_type", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint32_t>("total_adcs", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint32_t>("start_adc", SCALAR_PROPERTIES),
-                                         hep_hpc::hdf5::make_column<uint16_t, 1>("ADCs", {nAdcsPerRow_}, ARRAY_PROPERTIES)))
-    , fragments_(output_.file(), ps)
-{}
+                                         hep_hpc::hdf5::make_column<uint16_t, 1>("ADCs", {nWordsPerRow_}, ARRAY_PROPERTIES)))
+    , fragments_(ps, output_.file())
+{
+	if (mode_ == FragmentDatasetMode::Read)
+	{
+		TLOG(TLVL_ERROR) << "ToyFragmentDataset configured in read mode but is not capable of reading!";
+	}
+}
+
+artdaq::hdf5::ToyFragmentNtuple::~ToyFragmentNtuple()
+{
+	output_.flush();
+}
 
 void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::Fragment const& f)
 {
@@ -52,9 +62,9 @@ void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::Fragment const& f)
 		demo::ToyFragment frag(f);
 		auto m = f.metadata<demo::ToyFragment::Metadata>();
 		auto event_size = frag.total_adc_values();
-		for (size_t ii = 0; ii < event_size; ii += nAdcsPerRow_)
+		for (size_t ii = 0; ii < event_size; ii += nWordsPerRow_)
 		{
-			if (ii + nAdcsPerRow_ <= event_size)
+			if (ii + nWordsPerRow_ <= event_size)
 			{
 				output_.insert(f.sequenceID(), f.fragmentID(), f.timestamp(), f.type(),
 				               m->board_serial_number, m->num_adc_bits, frag.hdr_trigger_number(),
@@ -62,7 +72,7 @@ void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::Fragment const& f)
 			}
 			else
 			{
-				std::vector<demo::ToyFragment::adc_t> adcs(nAdcsPerRow_, 0);
+				std::vector<demo::ToyFragment::adc_t> adcs(nWordsPerRow_, 0);
 				std::copy(frag.dataBeginADCs() + ii, frag.dataEndADCs(), adcs.begin());
 				output_.insert(f.sequenceID(), f.fragmentID(), f.timestamp(), f.type(),
 				               m->board_serial_number, m->num_adc_bits, frag.hdr_trigger_number(),
@@ -73,3 +83,5 @@ void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::Fragment const& f)
 }
 
 void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::detail::RawEventHeader const& evtHdr) { fragments_.insert(evtHdr); }
+
+DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::ToyFragmentNtuple)

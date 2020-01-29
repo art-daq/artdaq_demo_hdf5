@@ -24,7 +24,7 @@ MakeDatasetPlugin(const fhicl::ParameterSet& pset,
 	{
 		std::stringstream errmsg;
 		errmsg
-		    << "Error in artdaq::MakeDatasetPlugin: Unable to find the Dataset plugin parameters in the FHiCL code \"" << Dataset_pset.to_string()
+		    << "Error in artdaq::MakeDatasetPlugin: Unable to find the Dataset plugin parameters in the FHiCL code \"" << dataset_pset.to_string()
 		    << "\"; FHiCL table with label \"" << plugin_label
 		    << "\" may not exist, or if it does, one or more parameters may be missing.";
 		ExceptionHandler(ExceptionHandlerRethrow::yes, errmsg.str());
@@ -35,7 +35,7 @@ MakeDatasetPlugin(const fhicl::ParameterSet& pset,
 		auto Dataset =
 		    bpf.makePlugin<std::unique_ptr<FragmentDataset>,
 		                   const fhicl::ParameterSet&>(
-		        dataset_pset.get<std::string>("DatasetPluginType"),
+		        dataset_pset.get<std::string>("datasetPluginType"),
 		        dataset_pset);
 
 		return Dataset;

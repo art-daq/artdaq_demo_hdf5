@@ -1,7 +1,7 @@
 #include "hep_hpc/hdf5/make_column.hpp"
 #include "hep_hpc/hdf5/make_ntuple.hpp"
 
-#include "artdaq-demo-hdf5/HDF5/hep_hpc/FragmentNtuple.hh"
+#include "artdaq-demo-hdf5/HDF5/hep-hpc/FragmentNtuple.hh"
 
 #define DO_COMPRESSION 0
 #if DO_COMPRESSION
@@ -22,7 +22,7 @@
 
 artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps, hep_hpc::hdf5::File const& file)
 
-    : nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
+    : FragmentDataset(ps, ps.get<std::string>("mode", "write"))
     , fragments_(hep_hpc::hdf5::make_ntuple({file, "Fragments"},
                                             hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                             hep_hpc::hdf5::make_scalar_column<uint16_t>("fragmentID", SCALAR_PROPERTIES),
@@ -37,11 +37,16 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps, hep_
                                                hep_hpc::hdf5::make_scalar_column<uint32_t>("event_id", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint8_t>("is_complete", SCALAR_PROPERTIES)))
-{}
+{
+	if (mode_ == FragmentDatasetMode::Read)
+	{
+		TLOG(TLVL_ERROR) << "ToyFragmentDataset configured in read mode but is not capable of reading!";
+	}
+}
 
 artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps)
 
-    : nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
+    : FragmentDataset(ps, ps.get<std::string>("mode", "write"))
     , fragments_(hep_hpc::hdf5::make_ntuple({ps.get<std::string>("fileName", "fragments.hdf5"), "Fragments"},
                                             hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                             hep_hpc::hdf5::make_scalar_column<uint16_t>("fragmentID", SCALAR_PROPERTIES),
@@ -56,7 +61,17 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps)
                                                hep_hpc::hdf5::make_scalar_column<uint32_t>("event_id", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint8_t>("is_complete", SCALAR_PROPERTIES)))
-{}
+{
+	if (mode_ == FragmentDatasetMode::Read)
+	{
+		TLOG(TLVL_ERROR) << "ToyFragmentDataset configured in read mode but is not capable of reading!";
+	}
+}
+
+artdaq::hdf5::FragmentNtuple::~FragmentNtuple()
+{
+	fragments_.flush();
+}
 
 void artdaq::hdf5::FragmentNtuple::insert(artdaq::Fragment const& frag)
 {
@@ -65,12 +80,12 @@ void artdaq::hdf5::FragmentNtuple::insert(artdaq::Fragment const& frag)
 		if (ii + nWordsPerRow_ <= frag.size())
 		{
 			fragments_.insert(frag.sequenceID(), frag.fragmentID(), frag.timestamp(), frag.type(),
-			                  frag.size(), ii, &frag.dataBegin()[ii]);
+			                  frag.size(), ii, &frag.headerBegin()[ii]);
 		}
 		else
 		{
 			std::vector<artdaq::RawDataType> words(nWordsPerRow_, 0);
-			std::copy(frag.dataBegin() + ii, frag.dataEnd(), words.begin());
+			std::copy(frag.headerBegin() + ii, frag.dataEnd(), words.begin());
 			fragments_.insert(frag.sequenceID(), frag.fragmentID(), frag.timestamp(), frag.type(),
 			                  frag.size(), ii, &words[0]);
 		}
@@ -81,3 +96,5 @@ void artdaq::hdf5::FragmentNtuple::insert(artdaq::detail::RawEventHeader const& 
 {
 	eventHeaders_.insert(hdr.run_id, hdr.subrun_id, hdr.event_id, hdr.sequence_id, hdr.is_complete);
 }
+
+DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::FragmentNtuple)
