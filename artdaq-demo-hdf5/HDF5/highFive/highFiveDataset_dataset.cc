@@ -18,7 +18,7 @@ artdaq::hdf5::HighFiveDataset::HighFiveDataset(fhicl::ParameterSet const& ps)
 		HighFive::DataSetCreateProps scalar_props;
 		scalar_props.add(HighFive::Chunking(std::vector<hsize_t>{128, 1}));
 		HighFive::DataSetCreateProps vector_props;
-		vector_props.add(HighFive::Chunking(std::vector<hsize_t>{128, nWordsPerRow_}));
+		vector_props.add(HighFive::Chunking(std::vector<hsize_t>{ps.get<size_t>("payloadChunkSize", 128), nWordsPerRow_}));
 
 		HighFive::DataSpace scalarSpace = HighFive::DataSpace({0, 1}, {HighFive::DataSpace::UNLIMITED, 1});
 		HighFive::DataSpace vectorSpace = HighFive::DataSpace({0, nWordsPerRow_}, {HighFive::DataSpace::UNLIMITED, nWordsPerRow_});
