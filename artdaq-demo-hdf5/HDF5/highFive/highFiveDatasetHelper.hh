@@ -14,7 +14,13 @@ public:
 	    , current_row_(0)
 	    , current_size_(dataset.getDimensions()[0])
 	    , chunk_size_(chunk_size)
-	{}
+	{
+		// Zero-size chunks are not allowed
+		if (chunk_size_ == 0)
+		{
+			chunk_size_ = 10;
+		}
+	}
 
 	template<typename T>
 	void write(T const& data)
@@ -63,8 +69,23 @@ public:
 private:
 	void resize()
 	{
-		dataset_.resize({current_size_ + chunk_size_, dataset_.getDimensions()[1]});
-		current_size_ += chunk_size_;
+		// Ideally, grow by one chunk at a time
+		if (current_size_ % chunk_size_ == 0)
+		{
+			dataset_.resize({current_size_ + chunk_size_, dataset_.getDimensions()[1]});
+			current_size_ += chunk_size_;
+		}
+		else
+		{
+			auto size_add = chunk_size_ - (current_size_ % chunk_size_);
+			if (size_add / static_cast<double>(chunk_size_) < 0.5)
+			{
+				size_add += chunk_size_;
+			}
+
+			dataset_.resize({current_size_ + size_add, dataset_.getDimensions()[1]});
+			current_size_ += size_add;
+		}
 	}
 
 private:
