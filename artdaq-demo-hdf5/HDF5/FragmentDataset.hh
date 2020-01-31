@@ -20,7 +20,7 @@ class FragmentDataset
 {
 public:
 	FragmentDataset(fhicl::ParameterSet const& ps, std::string mode);
-	virtual ~FragmentDataset() = default;
+	virtual ~FragmentDataset() noexcept = default;
 	virtual void insert(artdaq::Fragment const& f) = 0;
 	virtual void insert(artdaq::detail::RawEventHeader const&) = 0;
 	virtual std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() = 0;

@@ -6,8 +6,10 @@
 
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 
+#include "artdaq-demo-hdf5/HDF5/highFive/highFiveDatasetHelper.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
 
+#include <unordered_map>
 
 namespace artdaq {
 namespace hdf5 {
@@ -17,7 +19,7 @@ class HighFiveDataset : public FragmentDataset
 public:
 	HighFiveDataset(fhicl::ParameterSet const& ps);
 
-	virtual ~HighFiveDataset();
+	virtual ~HighFiveDataset() noexcept;
 
 	void insert(artdaq::Fragment const& frag) override;
 
@@ -31,6 +33,9 @@ private:
 	std::unique_ptr<HighFive::File> file_;
 	size_t headerIndex_;
 	size_t fragmentIndex_;
+
+	std::unordered_map<std::string, std::unique_ptr<HighFiveDatasetHelper>> fragment_datasets_;
+	std::unordered_map<std::string, std::unique_ptr<HighFiveDatasetHelper>> event_datasets_;
 };
 }  // namespace hdf5
 }  // namespace artdaq
