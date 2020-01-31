@@ -7,24 +7,28 @@
 artdaq::hdf5::HighFiveDataset::HighFiveDataset(fhicl::ParameterSet const& ps)
     : FragmentDataset(ps, ps.get<std::string>("mode", "write")), file_(nullptr), headerIndex_(0), fragmentIndex_(0), fragment_datasets_(), event_datasets_()
 {
-	if (mode_ == FragmentDatasetMode::Read)
+	auto payloadChunkSize = ps.get<size_t>("payloadChunkSize", 128);
+	HighFive::DataSetAccessProps payloadAccessProps;
+	payloadAccessProps.add(HighFive::Caching(12421, ps.get<size_t>("chunkCacheSizeBytes", sizeof(artdaq::RawDataType) * payloadChunkSize * nWordsPerRow_ * 10), 0.5));
+
+	    if (mode_ == FragmentDatasetMode::Read)
 	{
 		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::ReadOnly));
 
 		auto fragmentGroup = file_->getGroup("/Fragments");
 		fragment_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("sequenceID"));
-		fragment_datasets_["fragmentID"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.getDataSet("fragmentID"));
-		fragment_datasets_["timestamp"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.getDataSet("timestamp"));
-		fragment_datasets_["type"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.getDataSet("type"));
-		fragment_datasets_["size"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.getDataSet("size"));
-		fragment_datasets_["index"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.getDataSet("index"));
-		fragment_datasets_["payload"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.getDataSet("payload"));
+		fragment_datasets_["fragmentID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("fragmentID"));
+		fragment_datasets_["timestamp"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("timestamp"));
+		fragment_datasets_["type"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("type"));
+		fragment_datasets_["size"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("size"));
+		fragment_datasets_["index"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("index"));
+		fragment_datasets_["payload"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("payload", payloadAccessProps));
 		auto headerGroup = file_->getGroup("/EventHeaders");
-		event_datasets_["run_id"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.getDataSet("run_id"));
-		event_datasets_["subrun_id"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.getDataSet("subrun_id"));
-		event_datasets_["event_id"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.getDataSet("event_id"));
-		event_datasets_["sequenceID"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.getDataSet("sequenceID"));
-		event_datasets_["is_complete"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.getDataSet("is_complete"));
+		event_datasets_["run_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("run_id"));
+		event_datasets_["subrun_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("subrun_id"));
+		event_datasets_["event_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("event_id"));
+		event_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("sequenceID"));
+		event_datasets_["is_complete"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("is_complete"));
 	}
 	else
 	{
@@ -33,25 +37,25 @@ artdaq::hdf5::HighFiveDataset::HighFiveDataset(fhicl::ParameterSet const& ps)
 		HighFive::DataSetCreateProps scalar_props;
 		scalar_props.add(HighFive::Chunking(std::vector<hsize_t>{128, 1}));
 		HighFive::DataSetCreateProps vector_props;
-		vector_props.add(HighFive::Chunking(std::vector<hsize_t>{ps.get<size_t>("payloadChunkSize", 128), nWordsPerRow_}));
+		vector_props.add(HighFive::Chunking(std::vector<hsize_t>{payloadChunkSize, nWordsPerRow_}));
 
 		HighFive::DataSpace scalarSpace = HighFive::DataSpace({0, 1}, {HighFive::DataSpace::UNLIMITED, 1});
 		HighFive::DataSpace vectorSpace = HighFive::DataSpace({0, nWordsPerRow_}, {HighFive::DataSpace::UNLIMITED, nWordsPerRow_});
 
 		auto fragmentGroup = file_->createGroup("/Fragments");
-		fragment_datasets_["sequenceID"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("sequenceID", scalarSpace, scalar_props));
-		fragment_datasets_["fragmentID"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint16_t>("fragmentID", scalarSpace, scalar_props));
-		fragment_datasets_["timestamp"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("timestamp", scalarSpace, scalar_props));
-		fragment_datasets_["type"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint8_t>("type", scalarSpace, scalar_props));
-		fragment_datasets_["size"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("size", scalarSpace, scalar_props));
-		fragment_datasets_["index"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("index", scalarSpace, scalar_props));
-		fragment_datasets_["payload"] = std::make_unique < HighFiveDatasetHelper>(fragmentGroup.createDataSet<artdaq::RawDataType>("payload", vectorSpace, vector_props), ps.get<size_t>("payloadChunkSize", 128));
+		fragment_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("sequenceID", scalarSpace, scalar_props));
+		fragment_datasets_["fragmentID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint16_t>("fragmentID", scalarSpace, scalar_props));
+		fragment_datasets_["timestamp"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("timestamp", scalarSpace, scalar_props));
+		fragment_datasets_["type"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint8_t>("type", scalarSpace, scalar_props));
+		fragment_datasets_["size"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("size", scalarSpace, scalar_props));
+		fragment_datasets_["index"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("index", scalarSpace, scalar_props));
+		fragment_datasets_["payload"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<artdaq::RawDataType>("payload", vectorSpace, vector_props, payloadAccessProps), payloadChunkSize);
 		auto headerGroup = file_->createGroup("/EventHeaders");
-		event_datasets_["run_id"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("run_id", scalarSpace, scalar_props));
-		event_datasets_["subrun_id"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("subrun_id", scalarSpace, scalar_props));
-		event_datasets_["event_id"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("event_id", scalarSpace, scalar_props));
-		event_datasets_["sequenceID"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.createDataSet<uint64_t>("sequenceID", scalarSpace, scalar_props));
-		event_datasets_["is_complete"] = std::make_unique < HighFiveDatasetHelper>(headerGroup.createDataSet<uint8_t>("is_complete", scalarSpace, scalar_props));
+		event_datasets_["run_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("run_id", scalarSpace, scalar_props));
+		event_datasets_["subrun_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("subrun_id", scalarSpace, scalar_props));
+		event_datasets_["event_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("event_id", scalarSpace, scalar_props));
+		event_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint64_t>("sequenceID", scalarSpace, scalar_props));
+		event_datasets_["is_complete"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint8_t>("is_complete", scalarSpace, scalar_props));
 	}
 }
 
@@ -100,7 +104,7 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 {
 	TLOG(TLVL_DEBUG) << "readNextEvent START fragmentIndex_ " << fragmentIndex_;
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> output;
-	
+
 	auto numFragments = fragment_datasets_["sequenceID"]->getDatasetSize();
 	artdaq::Fragment::sequence_id_t currentSeqID = 0;
 
