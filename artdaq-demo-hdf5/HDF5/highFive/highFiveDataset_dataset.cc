@@ -61,7 +61,7 @@ artdaq::hdf5::HighFiveDataset::HighFiveDataset(fhicl::ParameterSet const& ps)
 
 artdaq::hdf5::HighFiveDataset::~HighFiveDataset()
 {
-	file_->flush();
+//	file_->flush();
 }
 
 void artdaq::hdf5::HighFiveDataset::insert(artdaq::Fragment const& frag)
