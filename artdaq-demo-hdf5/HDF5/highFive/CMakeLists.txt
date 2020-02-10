@@ -1,5 +1,5 @@
 
-simple_plugin(highFiveDataset "dataset" 
+simple_plugin(highFiveNtupleDataset "dataset" 
   ${HDF5_C_LIBRARIES}
  fhiclcpp
  cetlib

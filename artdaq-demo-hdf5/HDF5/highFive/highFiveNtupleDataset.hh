@@ -1,5 +1,5 @@
-#ifndef artdaq_demo_hdf5_HDF5_highFive_highFiveDataset_hh
-#define artdaq_demo_hdf5_HDF5_highFive_highFiveDataset_hh 1
+#ifndef artdaq_demo_hdf5_HDF5_highFive_highFiveNtupleDataset_hh
+#define artdaq_demo_hdf5_HDF5_highFive_highFiveNtupleDataset_hh 1
 
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/RawEvent.hh"
@@ -14,12 +14,12 @@
 namespace artdaq {
 namespace hdf5 {
 
-class HighFiveDataset : public FragmentDataset
+class HighFiveNtupleDataset : public FragmentDataset
 {
 public:
-	HighFiveDataset(fhicl::ParameterSet const& ps);
+	HighFiveNtupleDataset(fhicl::ParameterSet const& ps);
 
-	virtual ~HighFiveDataset() noexcept;
+	virtual ~HighFiveNtupleDataset() noexcept;
 
 	void insert(artdaq::Fragment const& frag) override;
 
@@ -39,4 +39,4 @@ private:
 };
 }  // namespace hdf5
 }  // namespace artdaq
-#endif  //artdaq_demo_hdf5_HDF5_highFive_highFiveDataset_hh
+#endif  //artdaq_demo_hdf5_HDF5_highFive_HighFiveNtupleDataset_hh

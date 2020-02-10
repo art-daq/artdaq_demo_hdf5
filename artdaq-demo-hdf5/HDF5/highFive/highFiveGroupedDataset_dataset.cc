@@ -1,72 +1,61 @@
-#include "artdaq-demo-hdf5/HDF5/highFive/highFiveDataset.hh"
-
 #include "artdaq-core/Data/ContainerFragment.hh"
+#include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
+#include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
 #include "artdaq/DAQdata/Globals.hh"
-#define TRACE_NAME "HighFiveDataset"
+#include "canvas/Persistency/Provenance/EventID.h"
 
-artdaq::hdf5::HighFiveDataset::HighFiveDataset(fhicl::ParameterSet const& ps)
-    : FragmentDataset(ps, ps.get<std::string>("mode", "write")), file_(nullptr), headerIndex_(0), fragmentIndex_(0), fragment_datasets_(), event_datasets_()
+#define TRACE_NAME "HighFiveGroupedDataset"
+
+namespace artdaq {
+namespace hdf5 {
+class HighFiveGroupedDataset : public FragmentDataset
 {
-	auto payloadChunkSize = ps.get<size_t>("payloadChunkSize", 128);
-	HighFive::DataSetAccessProps payloadAccessProps;
-	payloadAccessProps.add(HighFive::Caching(12421, ps.get<size_t>("chunkCacheSizeBytes", sizeof(artdaq::RawDataType) * payloadChunkSize * nWordsPerRow_ * 10), 0.5));
+	HighFiveGroupedDataset(fhicl::ParameterSet const& ps);
+	virtual ~HighFiveGroupedDataset();
 
-	    if (mode_ == FragmentDatasetMode::Read)
+	void insert(artdaq::Fragment const& frag) override;
+	void insert(artdaq::Fragments const& frags) override;
+	void insert(artdaq::detail::RawEventHeader const& hdr) override;
+	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
+	std::unique_ptr<artdaq::detail::RawEventHeader> GetEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
+
+private:
+	std::unique_ptr<HighFive::File> file_;
+	size_t headerIndex_;
+};
+}  // namespace hdf5
+}  // namespace artdaq
+
+artdaq::hdf5::HighFiveGroupedDataset::HighFiveGroupedDataset(fhicl::ParameterSet const& ps)
+    : FragmentDataset(ps, ps.get<std::string>("mode", "write")), file_(nullptr), headerIndex_(0)
+{
+	if (mode_ == FragmentDatasetMode::Read)
 	{
 		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::ReadOnly));
-
-		auto fragmentGroup = file_->getGroup("/Fragments");
-		fragment_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("sequenceID"));
-		fragment_datasets_["fragmentID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("fragmentID"));
-		fragment_datasets_["timestamp"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("timestamp"));
-		fragment_datasets_["type"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("type"));
-		fragment_datasets_["size"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("size"));
-		fragment_datasets_["index"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("index"));
-		fragment_datasets_["payload"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("payload", payloadAccessProps));
-		auto headerGroup = file_->getGroup("/EventHeaders");
-		event_datasets_["run_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("run_id"));
-		event_datasets_["subrun_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("subrun_id"));
-		event_datasets_["event_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("event_id"));
-		event_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("sequenceID"));
-		event_datasets_["is_complete"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("is_complete"));
 	}
 	else
 	{
 		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate));
-
-		HighFive::DataSetCreateProps scalar_props;
-		scalar_props.add(HighFive::Chunking(std::vector<hsize_t>{128, 1}));
-		HighFive::DataSetCreateProps vector_props;
-		vector_props.add(HighFive::Chunking(std::vector<hsize_t>{payloadChunkSize, nWordsPerRow_}));
-
-		HighFive::DataSpace scalarSpace = HighFive::DataSpace({0, 1}, {HighFive::DataSpace::UNLIMITED, 1});
-		HighFive::DataSpace vectorSpace = HighFive::DataSpace({0, nWordsPerRow_}, {HighFive::DataSpace::UNLIMITED, nWordsPerRow_});
-
-		auto fragmentGroup = file_->createGroup("/Fragments");
-		fragment_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("sequenceID", scalarSpace, scalar_props));
-		fragment_datasets_["fragmentID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint16_t>("fragmentID", scalarSpace, scalar_props));
-		fragment_datasets_["timestamp"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("timestamp", scalarSpace, scalar_props));
-		fragment_datasets_["type"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint8_t>("type", scalarSpace, scalar_props));
-		fragment_datasets_["size"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("size", scalarSpace, scalar_props));
-		fragment_datasets_["index"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("index", scalarSpace, scalar_props));
-		fragment_datasets_["payload"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<artdaq::RawDataType>("payload", vectorSpace, vector_props, payloadAccessProps), payloadChunkSize);
-		auto headerGroup = file_->createGroup("/EventHeaders");
-		event_datasets_["run_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("run_id", scalarSpace, scalar_props));
-		event_datasets_["subrun_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("subrun_id", scalarSpace, scalar_props));
-		event_datasets_["event_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("event_id", scalarSpace, scalar_props));
-		event_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint64_t>("sequenceID", scalarSpace, scalar_props));
-		event_datasets_["is_complete"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint8_t>("is_complete", scalarSpace, scalar_props));
 	}
 }
 
-artdaq::hdf5::HighFiveDataset::~HighFiveDataset()
+artdaq::hdf5::HighFiveGroupedDataset::~HighFiveGroupedDataset()
 {
-//	file_->flush();
+	//	file_->flush();
 }
 
-void artdaq::hdf5::HighFiveDataset::insert(artdaq::Fragment const& frag)
+void artdaq::hdf5::HighFiveGroupedDataset::insert(artdaq::Fragment const& frag)
 {
-	auto fragSize = frag.size();
+	auto fragmentGroup = file_->getGroup("Fragments");
+
+	if (!fragmentGroup.exist(std::to_string(frag.sequenceID())))
+	{
+		fragmentGroup.createGroup(std::to_string(frag.sequenceID()));
+	}
+	auto eventGroup = fragmentGroup.getGroup(std::to_string(frag.sequenceID()));
+
+
+		auto fragSize = frag.size();
 	auto rows = static_cast<size_t>(floor(fragSize / static_cast<double>(nWordsPerRow_))) + (fragSize % nWordsPerRow_ == 0 ? 0 : 1);
 	TLOG(TLVL_DEBUG) << "Fragment size: " << fragSize << ", rows: " << rows << " (nWordsPerRow: " << nWordsPerRow_ << ")";
 
@@ -91,7 +80,7 @@ void artdaq::hdf5::HighFiveDataset::insert(artdaq::Fragment const& frag)
 	}
 }
 
-void artdaq::hdf5::HighFiveDataset::insert(artdaq::detail::RawEventHeader const& hdr)
+void artdaq::hdf5::HighFiveGroupedDataset::insert(artdaq::detail::RawEventHeader const& hdr)
 {
 	event_datasets_["run_id"]->write(hdr.run_id);
 	event_datasets_["subrun_id"]->write(hdr.subrun_id);
@@ -100,7 +89,7 @@ void artdaq::hdf5::HighFiveDataset::insert(artdaq::detail::RawEventHeader const&
 	event_datasets_["is_complete"]->write(hdr.is_complete);
 }
 
-std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> artdaq::hdf5::HighFiveDataset::readNextEvent()
+std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> artdaq::hdf5::HighFiveGroupedDataset::readNextEvent()
 {
 	TLOG(TLVL_DEBUG) << "readNextEvent START fragmentIndex_ " << fragmentIndex_;
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> output;
@@ -164,7 +153,7 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 	return output;
 }
 
-std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveDataset::GetEventHeader(artdaq::Fragment::sequence_id_t const& seqID)
+std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGroupedDataset::GetEventHeader(artdaq::Fragment::sequence_id_t const& seqID)
 {
 	artdaq::Fragment::sequence_id_t sequence_id = 0;
 	auto numHeaders = event_datasets_["sequenceID"]->getDatasetSize();
@@ -190,4 +179,4 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveDataset::G
 	return std::make_unique<artdaq::detail::RawEventHeader>(hdr);
 }
 
-DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::HighFiveDataset)
+DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::HighFiveGroupedDataset)
