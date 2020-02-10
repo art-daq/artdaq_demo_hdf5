@@ -39,6 +39,7 @@ artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps
                                          hep_hpc::hdf5::make_scalar_column<uint32_t>("start_adc", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_column<uint16_t, 1>("ADCs", {nWordsPerRow_}, ARRAY_PROPERTIES)))
     , fragments_(ps, output_.file())
+    , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
 {
 	if (mode_ == FragmentDatasetMode::Read)
 	{
@@ -51,11 +52,11 @@ artdaq::hdf5::ToyFragmentNtuple::~ToyFragmentNtuple()
 	output_.flush();
 }
 
-void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::Fragment const& f)
+void artdaq::hdf5::ToyFragmentNtuple::insertOne(artdaq::Fragment const& f)
 {
 	if (f.type() != demo::FragmentType::TOY1 && f.type() != demo::FragmentType::TOY2)
 	{
-		fragments_.insert(f);
+		fragments_.insertOne(f);
 	}
 	else
 	{
@@ -82,6 +83,6 @@ void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::Fragment const& f)
 	}
 }
 
-void artdaq::hdf5::ToyFragmentNtuple::insert(artdaq::detail::RawEventHeader const& evtHdr) { fragments_.insert(evtHdr); }
+void artdaq::hdf5::ToyFragmentNtuple::insertHeader(artdaq::detail::RawEventHeader const& evtHdr) { fragments_.insertHeader(evtHdr); }
 
 DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::ToyFragmentNtuple)

@@ -132,7 +132,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 				TLOG(TLVL_INFO) << "raw_event_handle labels: moduleLabel:" << raw_event_handle.provenance()->moduleLabel();
 				TLOG(TLVL_INFO) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
 				sequence_id = (*raw_event_handle).front().sequenceID();
-				ntuple_->insert(*raw_event_handle);
+				ntuple_->insertMany(*raw_event_handle);
 			}
 		}
 	}
@@ -159,7 +159,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 				auto evt_sequence_id = header.sequence_id;
 				TLOG(TLVL_TRACE) << "HDFFileOutput::write header seq=" << evt_sequence_id;
 
-				ntuple_->insert(header);
+				ntuple_->insertHeader(header);
 
 				hdr_found = true;
 				TLOG(5) << "HDFFileOutput::write header seq=" << evt_sequence_id << " done errno=" << errno;
@@ -171,7 +171,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 		artdaq::detail::RawEventHeader hdr(ep.run(), ep.subRun(), ep.event(), sequence_id);
 		hdr.is_complete = true;
 
-		ntuple_->insert(hdr);
+		ntuple_->insertHeader(hdr);
 	}
 
 #if ART_HEX_VERSION < 0x30000

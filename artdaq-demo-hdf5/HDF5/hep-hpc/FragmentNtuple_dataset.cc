@@ -37,6 +37,7 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps, hep_
                                                hep_hpc::hdf5::make_scalar_column<uint32_t>("event_id", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint8_t>("is_complete", SCALAR_PROPERTIES)))
+    , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
 {
 	if (mode_ == FragmentDatasetMode::Read)
 	{
@@ -73,7 +74,7 @@ artdaq::hdf5::FragmentNtuple::~FragmentNtuple()
 	fragments_.flush();
 }
 
-void artdaq::hdf5::FragmentNtuple::insert(artdaq::Fragment const& frag)
+void artdaq::hdf5::FragmentNtuple::insertOne(artdaq::Fragment const& frag)
 {
 	for (size_t ii = 0; ii < frag.size(); ii += nWordsPerRow_)
 	{
@@ -92,7 +93,7 @@ void artdaq::hdf5::FragmentNtuple::insert(artdaq::Fragment const& frag)
 	}
 }
 
-void artdaq::hdf5::FragmentNtuple::insert(artdaq::detail::RawEventHeader const& hdr)
+void artdaq::hdf5::FragmentNtuple::insertHeader(artdaq::detail::RawEventHeader const& hdr)
 {
 	eventHeaders_.insert(hdr.run_id, hdr.subrun_id, hdr.event_id, hdr.sequence_id, hdr.is_complete);
 }

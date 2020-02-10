@@ -5,13 +5,19 @@
 #define TRACE_NAME "HighFiveNtupleDataset"
 
 artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet const& ps)
-    : FragmentDataset(ps, ps.get<std::string>("mode", "write")), file_(nullptr), headerIndex_(0), fragmentIndex_(0), fragment_datasets_(), event_datasets_()
+    : FragmentDataset(ps, ps.get<std::string>("mode", "write"))
+    , file_(nullptr)
+    , headerIndex_(0)
+    , fragmentIndex_(0)
+    , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
+    , fragment_datasets_()
+    , event_datasets_()
 {
 	auto payloadChunkSize = ps.get<size_t>("payloadChunkSize", 128);
 	HighFive::DataSetAccessProps payloadAccessProps;
 	payloadAccessProps.add(HighFive::Caching(12421, ps.get<size_t>("chunkCacheSizeBytes", sizeof(artdaq::RawDataType) * payloadChunkSize * nWordsPerRow_ * 10), 0.5));
 
-	    if (mode_ == FragmentDatasetMode::Read)
+	if (mode_ == FragmentDatasetMode::Read)
 	{
 		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::ReadOnly));
 
@@ -61,10 +67,10 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
 
 artdaq::hdf5::HighFiveNtupleDataset::~HighFiveNtupleDataset()
 {
-//	file_->flush();
+	//	file_->flush();
 }
 
-void artdaq::hdf5::HighFiveNtupleDataset::insert(artdaq::Fragment const& frag)
+void artdaq::hdf5::HighFiveNtupleDataset::insertOne(artdaq::Fragment const& frag)
 {
 	auto fragSize = frag.size();
 	auto rows = static_cast<size_t>(floor(fragSize / static_cast<double>(nWordsPerRow_))) + (fragSize % nWordsPerRow_ == 0 ? 0 : 1);
@@ -91,7 +97,7 @@ void artdaq::hdf5::HighFiveNtupleDataset::insert(artdaq::Fragment const& frag)
 	}
 }
 
-void artdaq::hdf5::HighFiveNtupleDataset::insert(artdaq::detail::RawEventHeader const& hdr)
+void artdaq::hdf5::HighFiveNtupleDataset::insertHeader(artdaq::detail::RawEventHeader const& hdr)
 {
 	event_datasets_["run_id"]->write(hdr.run_id);
 	event_datasets_["subrun_id"]->write(hdr.subrun_id);

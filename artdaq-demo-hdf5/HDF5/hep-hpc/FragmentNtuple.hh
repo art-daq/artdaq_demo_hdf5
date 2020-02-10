@@ -27,9 +27,9 @@ public:
 
 	virtual ~FragmentNtuple();
 
-	void insert(artdaq::Fragment const& frag) override;
+	void insertOne(artdaq::Fragment const& frag) override;
 
-	void insert(artdaq::detail::RawEventHeader const& hdr) override;
+	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
 
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override {
 		TLOG(TLVL_ERROR) << "FragmentNtuple is not capable of reading!";
@@ -45,6 +45,7 @@ public:
 private:
 	hep_hpc::hdf5::Ntuple<uint64Column, uint16Column, uint64Column, uint8Column, uint64Column, uint64Column, dataColumn> fragments_;
 	hep_hpc::hdf5::Ntuple<uint32Column, uint32Column, uint32Column, uint64Column, uint8Column> eventHeaders_;
+	size_t nWordsPerRow_;
 };
 }  // namespace hdf5
 }  // namespace artdaq
