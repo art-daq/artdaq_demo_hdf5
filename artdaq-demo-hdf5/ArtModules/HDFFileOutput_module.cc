@@ -106,56 +106,66 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	using RawEventHandle = art::Handle<RawEvent>;
 	using RawEventHeaderHandle = art::Handle<artdaq::detail::RawEventHeader>;
 
-	auto result_handles = std::vector<art::GroupQueryResult>();
-	auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
-#if ART_HEX_VERSION >= 0x30000
-	ModuleContext const mc{moduleDescription()};
-	ProcessTag const processTag{"", mc.moduleDescription().processName()};
-
-	result_handles = ep.getMany(mc, wrapped, art::MatchAllSelector{}, processTag);
-#else
-	result_handles = ep.getMany(wrapped, art::MatchAllSelector{});
-#endif
 	auto hdr_found = false;
 	auto sequence_id = artdaq::Fragment::InvalidSequenceID;
-
-	for (auto const& result_handle : result_handles)
 	{
-		auto const raw_event_handle = RawEventHandle(result_handle);
+		auto result_handles = std::vector<art::GroupQueryResult>();
+		auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
+#if ART_HEX_VERSION >= 0x30000
+		ModuleContext const mc{moduleDescription()};
+		ProcessTag const processTag{"", mc.moduleDescription().processName()};
 
-		if (raw_event_handle.isValid())
+		result_handles = ep.getMany(mc, wrapped, art::MatchAllSelector{}, processTag);
+#else
+		result_handles = ep.getMany(wrapped, art::MatchAllSelector{});
+#endif
+
+		for (auto const& result_handle : result_handles)
 		{
-			for (auto const& fragment : *raw_event_handle)
+			auto const raw_event_handle = RawEventHandle(result_handle);
+
+			if (raw_event_handle.isValid())
 			{
-				sequence_id = fragment.sequenceID();
-				auto fragid_id = fragment.fragmentID();
-				auto addr = reinterpret_cast<const void*>(fragment.headerBeginBytes());
-				auto size_bytes = fragment.sizeBytes();
-				TLOG(TLVL_TRACE) << "HDFFileOutput::write seq=" << sequence_id << " frag=" << fragid_id << " "
-				                 << addr << " bytes=0x" << std::hex << size_bytes << " label=" << raw_event_handle.provenance()->productInstanceName() << " start";
-
-				ntuple_->insert(fragment);
-
-				TLOG(5) << "HDFFileOutput::write seq=" << sequence_id << " frag=" << fragid_id << " done errno=" << errno;
+				TLOG(TLVL_INFO) << "raw_event_handle labels: branchName:" << raw_event_handle.provenance()->branchName();
+				TLOG(TLVL_INFO) << "raw_event_handle labels: friendlyClassName:" << raw_event_handle.provenance()->friendlyClassName();
+				TLOG(TLVL_INFO) << "raw_event_handle labels: inputTag:" << raw_event_handle.provenance()->inputTag();
+				TLOG(TLVL_INFO) << "raw_event_handle labels: moduleLabel:" << raw_event_handle.provenance()->moduleLabel();
+				TLOG(TLVL_INFO) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
+				sequence_id = (*raw_event_handle).front().sequenceID();
+				ntuple_->insert(*raw_event_handle);
 			}
 		}
+	}
+	{
+		auto result_handles = std::vector<art::GroupQueryResult>();
+		auto const& wrapped = art::WrappedTypeID::make<artdaq::detail::RawEventHeader>();
+#if ART_HEX_VERSION >= 0x30000
+		ModuleContext const mc{moduleDescription()};
+		ProcessTag const processTag{"", mc.moduleDescription().processName()};
 
-		auto const raw_event_header_handle = RawEventHeaderHandle(result_handle);
+		result_handles = ep.getMany(mc, wrapped, art::MatchAllSelector{}, processTag);
+#else
+		result_handles = ep.getMany(wrapped, art::MatchAllSelector{});
+#endif
 
-		if (raw_event_header_handle.isValid())
+		for (auto const& result_handle : result_handles)
 		{
-			auto const& header = *raw_event_header_handle;
+			auto const raw_event_header_handle = RawEventHeaderHandle(result_handle);
 
-			auto evt_sequence_id = header.sequence_id;
-			TLOG(TLVL_TRACE) << "HDFFileOutput::write header seq=" << evt_sequence_id;
+			if (raw_event_header_handle.isValid())
+			{
+				auto const& header = *raw_event_header_handle;
 
-			ntuple_->insert(header);
+				auto evt_sequence_id = header.sequence_id;
+				TLOG(TLVL_TRACE) << "HDFFileOutput::write header seq=" << evt_sequence_id;
 
-			hdr_found = true;
-			TLOG(5) << "HDFFileOutput::write header seq=" << evt_sequence_id << " done errno=" << errno;
+				ntuple_->insert(header);
+
+				hdr_found = true;
+				TLOG(5) << "HDFFileOutput::write header seq=" << evt_sequence_id << " done errno=" << errno;
+			}
 		}
 	}
-
 	if (!hdr_found)
 	{
 		artdaq::detail::RawEventHeader hdr(ep.run(), ep.subRun(), ep.event(), sequence_id);
