@@ -124,7 +124,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 		{
 			auto const raw_event_handle = RawEventHandle(result_handle);
 
-			if (raw_event_handle.isValid())
+			if (raw_event_handle.isValid() && raw_event_handle.product()->size() > 0)
 			{
 				TLOG(TLVL_INFO) << "raw_event_handle labels: branchName:" << raw_event_handle.provenance()->branchName();
 				TLOG(TLVL_INFO) << "raw_event_handle labels: friendlyClassName:" << raw_event_handle.provenance()->friendlyClassName();
