@@ -27,6 +27,10 @@ private:
 	std::unique_ptr<HighFive::File> file_;
 	size_t headerIndex_;
 	art::ServiceHandle<ArtdaqFragmentNamingServiceInterface> namingService_;
+	HighFive::DataSetCreateProps fragmentCProps_;
+	HighFive::DataSetAccessProps fragmentAProps_;
+
+	void writeFragment_(HighFive::Group& group, artdaq::Fragment const& frag);
 };
 }  // namespace hdf5
 }  // namespace artdaq
@@ -57,9 +61,6 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 	}
 	auto eventGroup = file_->getGroup(std::to_string(frag.sequenceID()));
 
-	HighFive::DataSetCreateProps fragmentCProps;
-	HighFive::DataSetAccessProps fragmentAProps;
-
 	if (frag.type() == Fragment::ContainerFragmentType)
 	{
 		ContainerFragment cf(frag);
@@ -67,7 +68,7 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 		{
 			auto fragPtr = cf.at(0);
 			auto typeName = namingService_->GetInstanceNameForFragment(*fragPtr, "unidentified").second;
-			if (eventGroup.exist(typeName))
+			if (!eventGroup.exist(typeName))
 			{
 				eventGroup.createGroup(typeName);
 			}
@@ -90,74 +91,31 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 				{
 					fragPtr = cf.at(ii);
 				}
-				HighFive::DataSpace fragmentSpace = HighFive::DataSpace({fragPtr->size() - fragPtr->headerSizeWords(), 1});
-				auto fragDset = containerGroup.createDataSet<RawDataType>("Fragment" + std::to_string(ii), fragmentSpace, fragmentCProps, fragmentAProps);
-				fragDset.write(fragPtr->headerBegin() + fragPtr->headerSizeWords());
-				fragDset.createAttribute("version", fragPtr->version());
-				fragDset.createAttribute("type", fragPtr->type());
-				fragDset.createAttribute("sequence_id", fragPtr->sequenceID());
-				fragDset.createAttribute("fragment_id", fragPtr->fragmentID());
-				fragDset.createAttribute("timestamp", fragPtr->timestamp());
+				writeFragment_(containerGroup, *fragPtr);
 			}
 		}
 		else
 		{
 			auto typeName = namingService_->GetInstanceNameForFragment(frag, "unidentified").second;
-			if (eventGroup.exist(typeName))
+			if (!eventGroup.exist(typeName))
 			{
 				eventGroup.createGroup(typeName);
 			}
 			auto typeGroup = eventGroup.getGroup(typeName);
 
-			HighFive::DataSpace fragmentSpace = HighFive::DataSpace({frag.size() - frag.headerSizeWords(), 1});
-
-			auto datasetNameBase = "Fragment" + std::to_string(frag.fragmentID());
-			auto datasetName = datasetNameBase;
-			int counter = 1;
-			while (typeGroup.exist(datasetName))
-			{
-				TLOG(TLVL_WARNING) << "Duplicate Fragment IDs detected! Check your configuration! counter=" << counter;
-				datasetName = datasetNameBase + "_" + std::to_string(counter);
-				counter++;
-			}
-
-			auto fragDset = typeGroup.createDataSet<RawDataType>(datasetName, fragmentSpace, fragmentCProps, fragmentAProps);
-			fragDset.write(frag.headerBegin() + frag.headerSizeWords());
-			fragDset.createAttribute("version", frag.version());
-			fragDset.createAttribute("type", frag.type());
-			fragDset.createAttribute("sequence_id", frag.sequenceID());
-			fragDset.createAttribute("fragment_id", frag.fragmentID());
-			fragDset.createAttribute("timestamp", frag.timestamp());
+			writeFragment_(typeGroup, frag);
 		}
 	}
 	else
 	{
 		auto typeName = namingService_->GetInstanceNameForFragment(frag, "unidentified").second;
-		if (eventGroup.exist(typeName))
+		if (!eventGroup.exist(typeName))
 		{
 			eventGroup.createGroup(typeName);
 		}
 		auto typeGroup = eventGroup.getGroup(typeName);
 
-		HighFive::DataSpace fragmentSpace = HighFive::DataSpace({frag.size() - frag.headerSizeWords(), 1});
-
-		auto datasetNameBase = "Fragment" + std::to_string(frag.fragmentID());
-		auto datasetName = datasetNameBase;
-		int counter = 1;
-		while (typeGroup.exist(datasetName))
-		{
-			TLOG(TLVL_WARNING) << "Duplicate Fragment IDs detected! Check your configuration! counter=" << counter;
-			datasetName = datasetNameBase + "_" + std::to_string(counter);
-			counter++;
-		}
-
-		auto fragDset = typeGroup.createDataSet<RawDataType>(datasetName, fragmentSpace, fragmentCProps, fragmentAProps);
-		fragDset.write(frag.headerBegin() + frag.headerSizeWords());
-		fragDset.createAttribute("version", frag.version());
-		fragDset.createAttribute("type", frag.type());
-		fragDset.createAttribute("sequence_id", frag.sequenceID());
-		fragDset.createAttribute("fragment_id", frag.fragmentID());
-		fragDset.createAttribute("timestamp", frag.timestamp());
+		writeFragment_(typeGroup, frag);
 	}
 }
 
@@ -206,6 +164,28 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGroupedDat
 	seqIDGroup.getAttribute("is_complete").read(hdr.is_complete);
 
 	return std::make_unique<artdaq::detail::RawEventHeader>(hdr);
+}
+
+void artdaq::hdf5::HighFiveGroupedDataset::writeFragment_(HighFive::Group& group, artdaq::Fragment const& frag)
+{
+	auto datasetNameBase = "Fragment_" + std::to_string(frag.fragmentID());
+	auto datasetName = datasetNameBase + ";1";
+	int counter = 2;
+	while (group.exist(datasetName))
+	{
+		TLOG(TLVL_DEBUG) << "Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+		datasetName = datasetNameBase + ";" + std::to_string(counter);
+		counter++;
+	}
+
+	HighFive::DataSpace fragmentSpace = HighFive::DataSpace({frag.size() - frag.headerSizeWords(), 1});
+	auto fragDset = group.createDataSet<RawDataType>(datasetName, fragmentSpace, fragmentCProps_, fragmentAProps_);
+	fragDset.write(frag.headerBegin() + frag.headerSizeWords());
+	fragDset.createAttribute("version", frag.version());
+	fragDset.createAttribute("type", frag.type());
+	fragDset.createAttribute("sequence_id", frag.sequenceID());
+	fragDset.createAttribute("fragment_id", frag.fragmentID());
+	fragDset.createAttribute("timestamp", frag.timestamp());
 }
 
 DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::HighFiveGroupedDataset)

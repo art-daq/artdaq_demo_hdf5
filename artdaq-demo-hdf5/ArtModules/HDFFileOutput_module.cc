@@ -126,11 +126,11 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 
 			if (raw_event_handle.isValid() && raw_event_handle.product()->size() > 0)
 			{
-				TLOG(TLVL_INFO) << "raw_event_handle labels: branchName:" << raw_event_handle.provenance()->branchName();
-				TLOG(TLVL_INFO) << "raw_event_handle labels: friendlyClassName:" << raw_event_handle.provenance()->friendlyClassName();
-				TLOG(TLVL_INFO) << "raw_event_handle labels: inputTag:" << raw_event_handle.provenance()->inputTag();
-				TLOG(TLVL_INFO) << "raw_event_handle labels: moduleLabel:" << raw_event_handle.provenance()->moduleLabel();
-				TLOG(TLVL_INFO) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
+				//TLOG(TLVL_INFO) << "raw_event_handle labels: branchName:" << raw_event_handle.provenance()->branchName();
+				//TLOG(TLVL_INFO) << "raw_event_handle labels: friendlyClassName:" << raw_event_handle.provenance()->friendlyClassName();
+				//TLOG(TLVL_INFO) << "raw_event_handle labels: inputTag:" << raw_event_handle.provenance()->inputTag();
+				//TLOG(TLVL_INFO) << "raw_event_handle labels: moduleLabel:" << raw_event_handle.provenance()->moduleLabel();
+				//TLOG(TLVL_INFO) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
 				sequence_id = (*raw_event_handle).front().sequenceID();
 				ntuple_->insertMany(*raw_event_handle);
 			}
