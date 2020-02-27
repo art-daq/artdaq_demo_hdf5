@@ -8,6 +8,8 @@ simple_plugin(HDFFileOutput "module"
 simple_plugin(HDFFileInput "source"
   artdaq-demo-hdf5_HDF5
   artdaq_DAQdata
+  
+  art_Framework_Services_Registry
 )
 
 install_headers(SUBDIRS detail)

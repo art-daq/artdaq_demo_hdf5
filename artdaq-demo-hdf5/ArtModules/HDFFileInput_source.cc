@@ -12,7 +12,7 @@ namespace art {
 	* source.fileNames and don't want the files services to be used.
 	*/
 template<>
-struct Source_generator<artdaq::detail::HDFFileReader<artdaq::Fragment::MakeSystemTypeMap>>
+struct Source_generator<artdaq::detail::HDFFileReader>
 {
 	static constexpr bool value = true;  ///< Used to suppress use of file services on art Source
 };
@@ -21,7 +21,7 @@ namespace artdaq {
 /**
 	 * \brief HDFFileInput is a typedef of art::Source<detail::HDFFileReader>
 	 */
-typedef art::Source<detail::HDFFileReader<artdaq::Fragment::MakeSystemTypeMap>> HDFFileInput;
+typedef art::Source<detail::HDFFileReader> HDFFileInput;
 }  // namespace artdaq
 
 DEFINE_ART_INPUT_SOURCE(artdaq::HDFFileInput)
