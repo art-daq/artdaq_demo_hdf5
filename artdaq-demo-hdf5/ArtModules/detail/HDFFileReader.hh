@@ -222,7 +222,7 @@ struct HDFFileReader
 			return false;
 		}
 
-		auto evtHeader = inputFile_->GetEventHeader(eventMap.begin()->second->at(0).sequenceID());
+		auto evtHeader = inputFile_->getEventHeader(eventMap.begin()->second->at(0).sequenceID());
 		if (evtHeader == nullptr)
 		{
 			TLOG_DEBUG("HDFFileReader") << "Did not receive Event Header for sequence ID " << eventMap.begin()->second->at(0).sequenceID() << ", skipping event";

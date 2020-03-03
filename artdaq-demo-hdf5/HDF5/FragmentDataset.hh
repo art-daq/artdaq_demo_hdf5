@@ -28,7 +28,7 @@ public:
 	}
 	virtual void insertHeader(detail::RawEventHeader const&) = 0;
 	virtual std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() = 0;
-	virtual std::unique_ptr<artdaq::detail::RawEventHeader> GetEventHeader(artdaq::Fragment::sequence_id_t const&) = 0;
+	virtual std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const&) = 0;
 
 protected:
 	FragmentDatasetMode mode_;

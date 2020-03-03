@@ -1,3 +1,5 @@
+#include "tracemf.h"
+#define TRACE_NAME "ToyFragmentNtuple"
 
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
@@ -41,25 +43,32 @@ artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps
     , fragments_(ps, output_.file())
     , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
 {
+	TLOG(TLVL_DEBUG) << "ToyFragmentNtuple CONSTRUCTOR START";
 	if (mode_ == FragmentDatasetMode::Read)
 	{
 		TLOG(TLVL_ERROR) << "ToyFragmentDataset configured in read mode but is not capable of reading!";
 	}
+	TLOG(TLVL_DEBUG) << "ToyFragmentNtuple CONSTRUCTOR END";
 }
 
 artdaq::hdf5::ToyFragmentNtuple::~ToyFragmentNtuple()
 {
+	TLOG(TLVL_DEBUG) << "ToyFragmentNtuple DESTRUCTOR START";
 	output_.flush();
+	TLOG(TLVL_DEBUG) << "ToyFragmentNtuple DESTRUCTOR END";
 }
 
 void artdaq::hdf5::ToyFragmentNtuple::insertOne(artdaq::Fragment const& f)
 {
+	TLOG(TLVL_TRACE) << "ToyFragmentNtuple::insertOne BEGIN";
 	if (f.type() != demo::FragmentType::TOY1 && f.type() != demo::FragmentType::TOY2)
 	{
+		TLOG(TLVL_TRACE) << "insertOne: Inserting generic Fragment";
 		fragments_.insertOne(f);
 	}
 	else
 	{
+		TLOG(TLVL_TRACE) << "insertOne: Decoding ToyFragment";
 		demo::ToyFragment frag(f);
 		auto m = f.metadata<demo::ToyFragment::Metadata>();
 		auto event_size = frag.total_adc_values();
@@ -81,8 +90,13 @@ void artdaq::hdf5::ToyFragmentNtuple::insertOne(artdaq::Fragment const& f)
 			}
 		}
 	}
+	TLOG(TLVL_TRACE) << "ToyFragmentNtuple::insertOne: END";
 }
 
-void artdaq::hdf5::ToyFragmentNtuple::insertHeader(artdaq::detail::RawEventHeader const& evtHdr) { fragments_.insertHeader(evtHdr); }
+void artdaq::hdf5::ToyFragmentNtuple::insertHeader(artdaq::detail::RawEventHeader const& evtHdr)
+{
+	TLOG(TLVL_TRACE) << "ToyFragmentNtuple::insertHeader: Calling FragmentNtuple::insertHeader";
+	fragments_.insertHeader(evtHdr);
+}
 
 DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::ToyFragmentNtuple)

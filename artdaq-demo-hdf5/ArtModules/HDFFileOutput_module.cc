@@ -101,6 +101,7 @@ void art::HDFFileOutput::endJob()
 
 void art::HDFFileOutput::write(EventPrincipal& ep)
 {
+	TLOG(TLVL_TRACE) << "Begin: HDFFileOutput::write(EventPrincipal& ep)";
 	using RawEvent = artdaq::Fragments;
 	using RawEvents = std::vector<RawEvent>;
 	using RawEventHandle = art::Handle<RawEvent>;
@@ -108,6 +109,8 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 
 	auto hdr_found = false;
 	auto sequence_id = artdaq::Fragment::InvalidSequenceID;
+
+	TLOG(5) << "write: Retrieving event Fragments";
 	{
 		auto result_handles = std::vector<art::GroupQueryResult>();
 		auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
@@ -126,16 +129,19 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 
 			if (raw_event_handle.isValid() && raw_event_handle.product()->size() > 0)
 			{
-				//TLOG(TLVL_INFO) << "raw_event_handle labels: branchName:" << raw_event_handle.provenance()->branchName();
-				//TLOG(TLVL_INFO) << "raw_event_handle labels: friendlyClassName:" << raw_event_handle.provenance()->friendlyClassName();
-				//TLOG(TLVL_INFO) << "raw_event_handle labels: inputTag:" << raw_event_handle.provenance()->inputTag();
-				//TLOG(TLVL_INFO) << "raw_event_handle labels: moduleLabel:" << raw_event_handle.provenance()->moduleLabel();
-				//TLOG(TLVL_INFO) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
+				TLOG(10) << "raw_event_handle labels: branchName:" << raw_event_handle.provenance()->branchName();
+				TLOG(10) << "raw_event_handle labels: friendlyClassName:" << raw_event_handle.provenance()->friendlyClassName();
+				TLOG(10) << "raw_event_handle labels: inputTag:" << raw_event_handle.provenance()->inputTag();
+				TLOG(10) << "raw_event_handle labels: moduleLabel:" << raw_event_handle.provenance()->moduleLabel();
+				TLOG(10) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
 				sequence_id = (*raw_event_handle).front().sequenceID();
+
+				TLOG(5) << "write: Writing to dataset";
 				ntuple_->insertMany(*raw_event_handle);
 			}
 		}
 	}
+	TLOG(5) << "write: Retrieving Event Header";
 	{
 		auto result_handles = std::vector<art::GroupQueryResult>();
 		auto const& wrapped = art::WrappedTypeID::make<artdaq::detail::RawEventHeader>();
@@ -168,6 +174,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	}
 	if (!hdr_found)
 	{
+		TLOG(5) << "write: Header not found, autogenerating";
 		artdaq::detail::RawEventHeader hdr(ep.run(), ep.subRun(), ep.event(), sequence_id);
 		hdr.is_complete = true;
 
@@ -179,6 +186,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 #else
 	fstats_.recordEvent(ep.eventID());
 #endif
+	TLOG(TLVL_TRACE) << "End: HDFFileOUtput::write(EventPrincipal& ep)";
 	return;
 }
 

@@ -1,3 +1,6 @@
+#include "tracemf.h"
+#define TRACE_NAME "FragmentNtuple"
+
 #include "hep_hpc/hdf5/make_column.hpp"
 #include "hep_hpc/hdf5/make_ntuple.hpp"
 
@@ -39,10 +42,12 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps, hep_
                                                hep_hpc::hdf5::make_scalar_column<uint8_t>("is_complete", SCALAR_PROPERTIES)))
     , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
 {
+	TLOG(TLVL_DEBUG) << "FragmentNtuple Constructor (file) START";
 	if (mode_ == FragmentDatasetMode::Read)
 	{
 		TLOG(TLVL_ERROR) << "ToyFragmentDataset configured in read mode but is not capable of reading!";
 	}
+	TLOG(TLVL_DEBUG) << "FragmentNtuple Constructor (file) END";
 }
 
 artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps)
@@ -63,19 +68,25 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps)
                                                hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint8_t>("is_complete", SCALAR_PROPERTIES)))
 {
+	TLOG(TLVL_DEBUG) << "FragmentNtuple Constructor START";
 	if (mode_ == FragmentDatasetMode::Read)
 	{
 		TLOG(TLVL_ERROR) << "ToyFragmentDataset configured in read mode but is not capable of reading!";
 	}
+	TLOG(TLVL_DEBUG) << "FragmentNtuple Constructor END";
 }
 
 artdaq::hdf5::FragmentNtuple::~FragmentNtuple()
 {
+	TLOG(TLVL_DEBUG) << "FragmentNtuple Destructor START";
 	fragments_.flush();
+	TLOG(TLVL_DEBUG) << "FragmentNtuple Destructor END";
 }
 
 void artdaq::hdf5::FragmentNtuple::insertOne(artdaq::Fragment const& frag)
 {
+	TLOG(TLVL_TRACE) << "FragmentNtuple::insertOne BEGIN";
+	
 	for (size_t ii = 0; ii < frag.size(); ii += nWordsPerRow_)
 	{
 		if (ii + nWordsPerRow_ <= frag.size())
@@ -91,10 +102,12 @@ void artdaq::hdf5::FragmentNtuple::insertOne(artdaq::Fragment const& frag)
 			                  frag.size(), ii, &words[0]);
 		}
 	}
+	TLOG(TLVL_TRACE) << "FragmentNtuple::insertOne END";
 }
 
 void artdaq::hdf5::FragmentNtuple::insertHeader(artdaq::detail::RawEventHeader const& hdr)
 {
+	TLOG(TLVL_TRACE) << "FragmentNtuple::insertHeader: Writing header to eventHeaders_ group";
 	eventHeaders_.insert(hdr.run_id, hdr.subrun_id, hdr.event_id, hdr.sequence_id, hdr.is_complete);
 }
 

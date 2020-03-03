@@ -36,7 +36,7 @@ public:
 		return std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>();
 	}
 
-	std::unique_ptr<artdaq::detail::RawEventHeader> GetEventHeader(artdaq::Fragment::sequence_id_t const&) override
+	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const&) override
 	{
 		TLOG(TLVL_ERROR) << "FragmentNtuple is not capable of reading!";
 		return nullptr;

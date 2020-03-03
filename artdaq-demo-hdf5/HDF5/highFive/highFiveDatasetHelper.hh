@@ -69,6 +69,7 @@ public:
 private:
 	void resize()
 	{
+		TLOG(TLVL_TRACE) << "HighFiveDatasetHelper::resize: Growing dataset by one chunk";
 		// Ideally, grow by one chunk at a time
 		if (current_size_ % chunk_size_ == 0)
 		{
