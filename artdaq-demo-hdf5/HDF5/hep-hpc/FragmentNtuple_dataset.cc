@@ -86,7 +86,7 @@ artdaq::hdf5::FragmentNtuple::~FragmentNtuple()
 void artdaq::hdf5::FragmentNtuple::insertOne(artdaq::Fragment const& frag)
 {
 	TLOG(TLVL_TRACE) << "FragmentNtuple::insertOne BEGIN";
-	
+
 	for (size_t ii = 0; ii < frag.size(); ii += nWordsPerRow_)
 	{
 		if (ii + nWordsPerRow_ <= frag.size())

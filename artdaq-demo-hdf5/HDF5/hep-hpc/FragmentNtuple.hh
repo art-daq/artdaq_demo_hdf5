@@ -31,7 +31,8 @@ public:
 
 	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
 
-	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override {
+	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override
+	{
 		TLOG(TLVL_ERROR) << "FragmentNtuple is not capable of reading!";
 		return std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>();
 	}

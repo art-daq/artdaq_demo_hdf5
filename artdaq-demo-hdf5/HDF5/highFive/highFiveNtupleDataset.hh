@@ -22,9 +22,9 @@ public:
 	virtual ~HighFiveNtupleDataset() noexcept;
 
 	void insertOne(Fragment const& frag) override;
-	
+
 	void insertHeader(detail::RawEventHeader const& hdr) override;
-	
+
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
 
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const&) override;

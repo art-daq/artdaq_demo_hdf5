@@ -8,8 +8,8 @@
 #include "artdaq-core/Data/RawEvent.hh"
 #include "artdaq-core/Utilities/ExceptionHandler.hh"
 #include "artdaq-core/Utilities/TimeUtils.hh"
-#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 #include "artdaq-demo-hdf5/HDF5/MakeDatasetPlugin.hh"
+#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 
 #include "art/Framework/Core/Frameworkfwd.h"
 

@@ -60,7 +60,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
 		fragment_datasets_["size"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("size", scalarSpace, scalar_props));
 		fragment_datasets_["index"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<uint64_t>("index", scalarSpace, scalar_props));
 		fragment_datasets_["payload"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.createDataSet<artdaq::RawDataType>("payload", vectorSpace, vector_props, payloadAccessProps), payloadChunkSize);
-				
+
 		TLOG(TLVL_TRACE) << "HighFiveNtupleDataset: Creating EventHeader datasets";
 		auto headerGroup = file_->createGroup("/EventHeaders");
 		event_datasets_["run_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("run_id", scalarSpace, scalar_props));

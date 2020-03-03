@@ -10,7 +10,6 @@
 #define TLVL_READFRAGMENT_V 13
 #define TLVL_GETEVENTHEADER 14
 
-
 #include <unordered_map>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
@@ -244,7 +243,7 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ BEGIN";
 						auto frag = readFragment_(container_group.getDataSet(fragname, fragmentAProps_));
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ END";
-												
+
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling addFragment BEGIN";
 						cfl.addFragment(frag);
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: addFragment END";
@@ -299,7 +298,7 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGroupedDat
 void artdaq::hdf5::HighFiveGroupedDataset::writeFragment_(HighFive::Group& group, artdaq::Fragment const& frag)
 {
 	TLOG(TLVL_TRACE) << "writeFragment_ BEGIN";
-	
+
 	auto datasetNameBase = "Fragment_" + std::to_string(frag.fragmentID());
 	auto datasetName = datasetNameBase + ";1";
 	int counter = 2;

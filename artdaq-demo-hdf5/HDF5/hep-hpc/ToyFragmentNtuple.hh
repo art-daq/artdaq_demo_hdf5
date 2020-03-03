@@ -17,9 +17,9 @@ public:
 	virtual ~ToyFragmentNtuple();
 
 	void insertOne(artdaq::Fragment const& f) override;
-	
+
 	void insertHeader(artdaq::detail::RawEventHeader const& evtHdr) override;
-	
+
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override
 	{
 		TLOG(TLVL_ERROR) << "ToyFragmentNtuple is not capable of reading!";
