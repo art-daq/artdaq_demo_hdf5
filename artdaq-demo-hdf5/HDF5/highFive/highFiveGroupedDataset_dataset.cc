@@ -84,7 +84,7 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
 			auto fragPtr = cf.at(0);
-			auto typeName = namingService_->GetInstanceNameForFragment(*fragPtr, "unidentified").second;
+			auto typeName = namingService_->GetInstanceNameForFragment(*fragPtr).second;
 			if (!eventGroup.exist(typeName))
 			{
 				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -118,7 +118,7 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 		else
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Writing Empty Container Fragment as standard Fragment";
-			auto typeName = namingService_->GetInstanceNameForFragment(frag, "unidentified").second;
+			auto typeName = namingService_->GetInstanceNameForFragment(frag).second;
 			if (!eventGroup.exist(typeName))
 			{
 				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -132,7 +132,7 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 	else
 	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Writing non-Container Fragment";
-		auto typeName = namingService_->GetInstanceNameForFragment(frag, "unidentified").second;
+		auto typeName = namingService_->GetInstanceNameForFragment(frag).second;
 		if (!eventGroup.exist(typeName))
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;

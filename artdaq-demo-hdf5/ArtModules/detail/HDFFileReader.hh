@@ -49,7 +49,6 @@ struct HDFFileReader
 
 	art::SourceHelper const& pmaker;                       ///< An art::SourceHelper instance
 	std::string pretend_module_name;                       ///< The module name to store data under
-	std::string unidentified_instance_name;                ///< The name to use for unknown Fragment types
 	bool shutdownMsgReceived;                              ///< Whether a shutdown message has been received
 	size_t bytesRead;                                      ///< running total of number of bytes received
 	std::chrono::steady_clock::time_point last_read_time;  ///< Time last read was completed
@@ -76,7 +75,6 @@ struct HDFFileReader
 	              art::SourceHelper const& pm)
 	    : pmaker(pm)
 	    , pretend_module_name(ps.get<std::string>("raw_data_label", "daq"))
-	    , unidentified_instance_name("unidentified")
 	    , shutdownMsgReceived(false)
 	    , bytesRead(0)
 	    , last_read_time(std::chrono::steady_clock::now())
@@ -92,11 +90,11 @@ struct HDFFileReader
 		art::ServiceHandle<ArtdaqFragmentNamingServiceInterface> translator;
 		inputFile_ = artdaq::hdf5::MakeDatasetPlugin(ps, "dataset");
 
-		help.reconstitutes<Fragments, art::InEvent>(pretend_module_name, unidentified_instance_name);
+		help.reconstitutes<Fragments, art::InEvent>(pretend_module_name, translator->GetUnidentifiedInstanceName());
 
 		// Workaround for #22979
-		help.reconstitutes<Fragments, art::InRun>(pretend_module_name, unidentified_instance_name);
-		help.reconstitutes<Fragments, art::InSubRun>(pretend_module_name, unidentified_instance_name);
+		help.reconstitutes<Fragments, art::InRun>(pretend_module_name, translator->GetUnidentifiedInstanceName());
+		help.reconstitutes<Fragments, art::InSubRun>(pretend_module_name, translator->GetUnidentifiedInstanceName());
 
 		try
 		{
@@ -209,7 +207,7 @@ struct HDFFileReader
 		auto got_event_time = std::chrono::steady_clock::now();
 		auto firstFragmentType = eventMap.begin()->first;
 		TLOG_DEBUG("HDFFileReader") << "First Fragment type is " << (int)firstFragmentType << " ("
-		                            << translator->GetInstanceNameForType(firstFragmentType, unidentified_instance_name) << ")";
+		                            << translator->GetInstanceNameForType(firstFragmentType) << ")";
 		// We return false, indicating we're done reading, if:
 		//   1) we did not obtain an event, because we timed out and were
 		//      configured NOT to keep trying after a timeout, or
@@ -350,14 +348,14 @@ struct HDFFileReader
 				bytesRead += frag.sizeBytes();
 
 				std::pair<bool, std::string> instance_name_result =
-				    translator->GetInstanceNameForFragment(frag, unidentified_instance_name);
+				    translator->GetInstanceNameForFragment(frag);
 				std::string label = instance_name_result.second;
 				if (!instance_name_result.first)
 				{
 					TLOG_WARNING("HDFFileReader")
 					    << "UnknownFragmentType: The product instance name mapping for fragment type \"" << ((int)type_code)
 					    << "\" is not known. Fragments of this "
-					    << "type will be stored in the event with an instance name of \"" << unidentified_instance_name << "\".";
+					    << "type will be stored in the event with an instance name of \"" << label << "\".";
 				}
 				if (!derived_fragments.count(label))
 				{
