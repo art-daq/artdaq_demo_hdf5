@@ -109,6 +109,9 @@ endif()
 message("Calling git submodule init in artdaq_demo_hdf5 BEGIN")
 execute_process(COMMAND git submodule init WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 message("Calling git submodule init in artdaq_demo_hdf5 END")
+message("Calling git submodule update in artdaq_demo_hdf5 BEGIN")
+execute_process(COMMAND git submodule update WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+message("Calling git submodule update in artdaq_demo_hdf5 END")
 
 # macros for art_dictionary and simple_plugin
 include(ArtMake)
