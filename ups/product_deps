@@ -18,14 +18,14 @@ bindir      fq_dir      bin
 #
 product		 version	optional
 artdaq_demo           v3_07_01a
-hep_hpc_toolkit      v00_11_00
+hep_hpc      v0_11_00
 cetbuildtools    v7_14_00       -       only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
-qualifier    	   artdaq_demo	 	 hep_hpc_toolkit
+qualifier    	   artdaq_demo	 	 hep_hpc
 c7:s94:prof  	   c7:s94:prof  	 c7:prof
 c7:s94:debug  	   c7:s94:debug 	 c7:prof
 e19:s94:prof   	   e19:s94:prof  	 e19:prof
