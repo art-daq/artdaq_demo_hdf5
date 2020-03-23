@@ -72,7 +72,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
 	TLOG(TLVL_DEBUG) << "HighFiveNtupleDataset Constructor END";
 }
 
-artdaq::hdf5::HighFiveNtupleDataset::~HighFiveNtupleDataset()
+artdaq::hdf5::HighFiveNtupleDataset::~HighFiveNtupleDataset() noexcept
 {
 	TLOG(TLVL_DEBUG) << "~HighFiveNtupleDataset BEGIN/END";
 	//	file_->flush();

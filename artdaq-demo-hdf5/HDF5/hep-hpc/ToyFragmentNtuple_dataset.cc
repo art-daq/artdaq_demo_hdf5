@@ -5,8 +5,12 @@
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/hep-hpc/ToyFragmentNtuple.hh"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-braces"
 #include "hep_hpc/hdf5/make_column.hpp"
 #include "hep_hpc/hdf5/make_ntuple.hpp"
+#pragma GCC diagnostic pop
 
 #define DO_COMPRESSION 0
 #if DO_COMPRESSION
@@ -28,6 +32,7 @@
 artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps)
 
     : FragmentDataset(ps, ps.get<std::string>("mode", "write"))
+    , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
     , output_(hep_hpc::hdf5::make_ntuple({ps.get<std::string>("fileName", "toyFragments.hdf5"), "TOYFragments"},
                                          hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint16_t>("fragmentID", SCALAR_PROPERTIES),
@@ -39,9 +44,8 @@ artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps
                                          hep_hpc::hdf5::make_scalar_column<uint8_t>("distribution_type", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint32_t>("total_adcs", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint32_t>("start_adc", SCALAR_PROPERTIES),
-                                         hep_hpc::hdf5::make_column<uint16_t, 1>("ADCs", {nWordsPerRow_}, ARRAY_PROPERTIES)))
+                                         hep_hpc::hdf5::make_column<uint16_t, 1>("ADCs", nWordsPerRow_, ARRAY_PROPERTIES)))
     , fragments_(ps, output_.file())
-    , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
 {
 	TLOG(TLVL_DEBUG) << "ToyFragmentNtuple CONSTRUCTOR START";
 	if (mode_ == FragmentDatasetMode::Read)

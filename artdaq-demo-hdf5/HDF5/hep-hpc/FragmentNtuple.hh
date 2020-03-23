@@ -4,8 +4,11 @@
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/RawEvent.hh"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-braces"
 #include "hep_hpc/hdf5/Column.hpp"
 #include "hep_hpc/hdf5/Ntuple.hpp"
+#pragma GCC diagnostic pop
 
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 
@@ -44,9 +47,9 @@ public:
 	}
 
 private:
+	size_t nWordsPerRow_;
 	hep_hpc::hdf5::Ntuple<uint64Column, uint16Column, uint64Column, uint8Column, uint64Column, uint64Column, dataColumn> fragments_;
 	hep_hpc::hdf5::Ntuple<uint32Column, uint32Column, uint32Column, uint64Column, uint8Column> eventHeaders_;
-	size_t nWordsPerRow_;
 };
 }  // namespace hdf5
 }  // namespace artdaq

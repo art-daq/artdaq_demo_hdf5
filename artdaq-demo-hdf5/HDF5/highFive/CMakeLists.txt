@@ -21,4 +21,5 @@ simple_plugin(highFiveGroupedDataset "dataset"
   art_Framework_Services_Registry
   art_Framework_IO
   art_Utilities
+ ${Boost_SYSTEM_LIBRARY}
 )

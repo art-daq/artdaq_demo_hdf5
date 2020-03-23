@@ -4,6 +4,7 @@
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/RawEvent.hh"
 #include "fhiclcpp/ParameterSet.h"
+#include "cetlib/compiler_macros.h"
 
 #include <unordered_map>
 
@@ -39,8 +40,12 @@ protected:
 
 /** \cond */
 
+#ifndef EXTERN_C_FUNC_DECLARE_START
+#define EXTERN_C_FUNC_DECLARE_START extern "C" {
+#endif
+
 #define DEFINE_ARTDAQ_DATASET_PLUGIN(klass)                                            \
-	extern "C" {                                                                       \
+	EXTERN_C_FUNC_DECLARE_START                                                        \
 	std::unique_ptr<artdaq::hdf5::FragmentDataset> make(fhicl::ParameterSet const& ps) \
 	{                                                                                  \
 		return std::unique_ptr<artdaq::hdf5::FragmentDataset>(new klass(ps));          \

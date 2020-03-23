@@ -33,9 +33,9 @@ public:
 	}
 
 private:
+	size_t nWordsPerRow_;
 	hep_hpc::hdf5::Ntuple<uint64Column, uint16Column, uint64Column, uint8Column, uint16Column, uint8Column, uint32Column, uint8Column, uint32Column, uint32Column, uint16Column> output_;
 	FragmentNtuple fragments_;
-	size_t nWordsPerRow_;
 };
 }  // namespace hdf5
 }  // namespace artdaq
