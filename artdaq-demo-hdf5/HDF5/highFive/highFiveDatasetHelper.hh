@@ -6,7 +6,7 @@
 namespace artdaq {
 namespace hdf5 {
 
-	/**
+/**
 	 * @brief Helper class for HighFiveNtupleDataset
 	 *
 	 * This class represents a column in an Ntuple-formatted group of datasets

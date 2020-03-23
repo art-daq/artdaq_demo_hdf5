@@ -9,7 +9,6 @@
 #include "hep_hpc/hdf5/make_ntuple.hpp"
 #pragma GCC diagnostic pop
 
-
 #define DO_COMPRESSION 0
 #if DO_COMPRESSION
 #define SCALAR_PROPERTIES                                                    \
@@ -40,7 +39,7 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps, hep_
                                             hep_hpc::hdf5::make_scalar_column<uint64_t>("size", SCALAR_PROPERTIES),
                                             hep_hpc::hdf5::make_scalar_column<uint64_t>("index", SCALAR_PROPERTIES),
                                             hep_hpc::hdf5::make_column<artdaq::RawDataType, 1>("payload", nWordsPerRow_, ARRAY_PROPERTIES)))
-											/** \endcond */
+    /** \endcond */
     , eventHeaders_(hep_hpc::hdf5::make_ntuple({fragments_.file(), "EventHeaders"},
                                                /** \cond */
                                                hep_hpc::hdf5::make_scalar_column<uint32_t>("run_id", SCALAR_PROPERTIES),
@@ -48,7 +47,7 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps, hep_
                                                hep_hpc::hdf5::make_scalar_column<uint32_t>("event_id", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint8_t>("is_complete", SCALAR_PROPERTIES)))
-											   /** \endcond */
+/** \endcond */
 {
 	TLOG(TLVL_DEBUG) << "FragmentNtuple Constructor (file) START";
 	if (mode_ == FragmentDatasetMode::Read)
@@ -71,7 +70,7 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps)
                                             hep_hpc::hdf5::make_scalar_column<uint64_t>("size", SCALAR_PROPERTIES),
                                             hep_hpc::hdf5::make_scalar_column<uint64_t>("index", SCALAR_PROPERTIES),
                                             hep_hpc::hdf5::make_column<artdaq::RawDataType, 1>("payload", nWordsPerRow_, ARRAY_PROPERTIES)))
-											/** \endcond */
+    /** \endcond */
     , eventHeaders_(hep_hpc::hdf5::make_ntuple({fragments_.file(), "EventHeaders"},
                                                /** \cond */
                                                hep_hpc::hdf5::make_scalar_column<uint32_t>("run_id", SCALAR_PROPERTIES),
@@ -79,7 +78,7 @@ artdaq::hdf5::FragmentNtuple::FragmentNtuple(fhicl::ParameterSet const& ps)
                                                hep_hpc::hdf5::make_scalar_column<uint32_t>("event_id", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                                hep_hpc::hdf5::make_scalar_column<uint8_t>("is_complete", SCALAR_PROPERTIES)))
-											   /** \endcond */
+/** \endcond */
 {
 	TLOG(TLVL_DEBUG) << "FragmentNtuple Constructor START";
 	if (mode_ == FragmentDatasetMode::Read)

@@ -14,7 +14,7 @@
 namespace artdaq {
 namespace hdf5 {
 
-	/**
+/**
 	 * @brief An implementation of FragmentDataset using the HighFive backend to produce files identical to those produced by the hep_hpc backend (FragmentNtuple)
 	 */
 class HighFiveNtupleDataset : public FragmentDataset

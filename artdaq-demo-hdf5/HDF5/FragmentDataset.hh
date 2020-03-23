@@ -3,21 +3,21 @@
 
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/RawEvent.hh"
-#include "fhiclcpp/ParameterSet.h"
 #include "cetlib/compiler_macros.h"
+#include "fhiclcpp/ParameterSet.h"
 
 #include <unordered_map>
 
 namespace artdaq {
 namespace hdf5 {
 
-	/**
+/**
 	 * @brief Tag for whether this FragmentDataset is for reading or for writing
 	 */
 enum class FragmentDatasetMode : uint8_t
 {
-	Read = 0, ///< This FragmentDataset is reading from a file (not supported by hep_hpc backend)
-	Write = 1 ///< This FragmentDataset is writing to a file
+	Read = 0,  ///< This FragmentDataset is reading from a file (not supported by hep_hpc backend)
+	Write = 1  ///< This FragmentDataset is writing to a file
 };
 
 /**
@@ -80,7 +80,7 @@ public:
 	virtual std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) = 0;
 
 protected:
-	FragmentDatasetMode mode_; ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
+	FragmentDatasetMode mode_;  ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
 };
 
 }  // namespace hdf5

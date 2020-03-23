@@ -47,13 +47,13 @@ struct HDFFileReader
    */
 	HDFFileReader& operator=(HDFFileReader const&) = delete;
 
-	art::SourceHelper const& pmaker;                       ///< An art::SourceHelper instance
-	std::string pretend_module_name;                       ///< The module name to store data under
-	bool shutdownMsgReceived;                              ///< Whether a shutdown message has been received
-	size_t bytesRead;                                      ///< running total of number of bytes received
-	std::chrono::steady_clock::time_point last_read_time;  ///< Time last read was completed
-	unsigned readNext_calls_;                              ///< The number of times readNext has been called
-	std::unique_ptr<artdaq::hdf5::FragmentDataset> inputFile_; ///< The Dataset plugin which this input source will be reading from
+	art::SourceHelper const& pmaker;                            ///< An art::SourceHelper instance
+	std::string pretend_module_name;                            ///< The module name to store data under
+	bool shutdownMsgReceived;                                   ///< Whether a shutdown message has been received
+	size_t bytesRead;                                           ///< running total of number of bytes received
+	std::chrono::steady_clock::time_point last_read_time;       ///< Time last read was completed
+	unsigned readNext_calls_;                                   ///< The number of times readNext has been called
+	std::unique_ptr<artdaq::hdf5::FragmentDataset> inputFile_;  ///< The Dataset plugin which this input source will be reading from
 
 	/**
    * \brief HDFFileReader Constructor
