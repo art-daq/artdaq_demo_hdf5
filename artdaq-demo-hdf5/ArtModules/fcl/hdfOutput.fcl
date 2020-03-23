@@ -1,0 +1,46 @@
+services: {
+    ArtdaqFragmentNamingServiceInterface: {
+    service_provider: ArtdaqDemoFragmentNamingService
+#    service_provider: ArtdaqFragmentNamingService
+#  fragment_type_map: [[1, "MISSED"], [2, "TPC"], [3, "PHOTON"], [4, "TRIGGER"], [5, "TIMING"], [6, "TOY1"], [7, "TOY2"], [8, "FELIX"], [9, "CRT"], [10, "CTB"], [11, "CPUHITS"], [12, "DEVBOARDHITS"], [13, "UNKNOWN"]]
+}
+}
+
+outputs: {
+   hephpc: {
+     module_type: HDFFileOutput
+     dataset: {
+         datasetPluginType: FragmentNtuple
+         fileName: "hep_hpc.hdf5"
+         nWordsPerRow: 10240
+     }
+   }
+   highfive: {
+     module_type: HDFFileOutput
+     dataset: {
+         datasetPluginType: highFiveGroupedDataset
+         fileName: "highFive.hdf5"
+         #fileName: "/dev/null"
+         nWordsPerRow: 1024
+     }
+   }
+   rootout: {
+   		module_type: RootOutput
+        fileName: "root.root"
+   }
+}
+
+physics: {
+#  my_output_modules: [ rootout ]
+#   my_output_modules: [ hephpc, highfive ]
+   my_output_modules: [ highfive ]
+}
+
+#source: {
+#  module_type: HDFFileInput
+#  dataset: {
+#    datasetPluginType: highFiveDataset
+#    mode: "read"
+#	fileName: "highFive.hdf5"
+#  }
+#}
