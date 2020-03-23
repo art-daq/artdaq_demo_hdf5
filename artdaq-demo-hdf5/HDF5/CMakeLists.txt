@@ -9,7 +9,8 @@ art_make(BASENAME_ONLY
   ${MF_MESSAGELOGGER}
 )
 
-add_subdirectory(hep-hpc)
+# 03/23/2020, ELF: Removing the hep-hpc builds, they are write-only and based on a dev product.
+#add_subdirectory(hep-hpc)
 
 set(USE_HIGHFIVE ON)
 if(${USE_HIGHFIVE}) 
