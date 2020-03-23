@@ -6,6 +6,7 @@ art_make(BASENAME_ONLY
   ${CETLIB}
   ${CETLIB_EXCEPT}
   artdaq-core_Utilities
+  ${MF_MESSAGELOGGER}
 )
 
 add_subdirectory(hep-hpc)
