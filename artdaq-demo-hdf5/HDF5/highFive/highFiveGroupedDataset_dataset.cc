@@ -20,16 +20,59 @@
 
 namespace artdaq {
 namespace hdf5 {
+/**
+ * @brief A FragmentDataset implementation which produces files where each event is a Group, and each Fragment_id_t within the group is either a dataset or a group if it is a ContainerFragment
+ *
+ * This implementation uses groups for each event, and datasets for each Fragment's metadata and payload. The advantage of this arrangement is that since each Fragment is its own dataset,
+ * each dataset can be sized to exactly hold that Fragment's data.
+ */
 class HighFiveGroupedDataset : public FragmentDataset
 {
 public:
+	/**
+	 * @brief HighFiveGroupedDataset Constructor
+	 * @param ps ParameterSet used to configure HighFiveGroupedDataset
+	 *
+	 * HighFiveGroupedDataset accepts the following Parameters:
+	 * "fileName" (REQUIRED): File name to use
+	 * "mode" (Default: "write"): Mode string to use for this FragmentDataset
+	 */
 	HighFiveGroupedDataset(fhicl::ParameterSet const& ps);
-	virtual ~HighFiveGroupedDataset();
+	/**
+	 * @brief HighFiveGroupedDataset Destructor
+	 */
+	virtual ~HighFiveGroupedDataset() noexcept;
 
+	/**
+	 * @brief Insert a Fragment into the Dataset (write it to the HDF5 file)
+	 * @param frag Fragment to insert
+	 *
+	 * Each Fragment will be written as an HDF5 Dataset, unless it is a Container type, in which case it will be written as an HDF5 Group, with each contained Fragment as a Dataset within that Group.
+	 * Fragments are written as metadata and payload, with the Fragment header fields represented as Dataset attributes.
+	 */
 	void insertOne(artdaq::Fragment const& frag) override;
+	/**
+	 * @brief Insert several Fragments into the Dataset (write them to the HDF5 file)
+	 * @param frags Fragments to insert
+	 */
 	void insertMany(artdaq::Fragments const& frags) override;
+	/**
+	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)
+	 * @param hdr RawEventHeader to insert
+	 *
+	 * This function writes the header information into attributes for the HDF5 Group identified by the sequence ID of the RawDataHeader.
+	 */
 	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
+	/**
+	 * @brief Read the next event from the Dataset (HDF5 file)
+	 * @returns A Map of Fragment::type_t and pointers to Fragments, suitable for ArtdaqInput
+	 */
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
+	/**
+	 * @brief Read a RawEventHeader from the Dataset (HDF5 file)
+	 * @param seqID Sequence ID of the RawEventHeader (should be equivalent to event number)
+	 * @return Pointer to a RawEventHeader if a match was found in the Dataset, nullptr otherwise
+	 */
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
@@ -60,7 +103,7 @@ artdaq::hdf5::HighFiveGroupedDataset::HighFiveGroupedDataset(fhicl::ParameterSet
 	TLOG(TLVL_DEBUG) << "HighFiveGroupedDataset CONSTRUCTOR END";
 }
 
-artdaq::hdf5::HighFiveGroupedDataset::~HighFiveGroupedDataset()
+artdaq::hdf5::HighFiveGroupedDataset::~HighFiveGroupedDataset() noexcept
 {
 	TLOG(TLVL_DEBUG) << "~HighFiveGroupedDataset Begin/End ";
 	//	file_->flush();

@@ -6,9 +6,19 @@
 namespace artdaq {
 namespace hdf5 {
 
+	/**
+	 * @brief Helper class for HighFiveNtupleDataset
+	 *
+	 * This class represents a column in an Ntuple-formatted group of datasets
+	 */
 class HighFiveDatasetHelper
 {
 public:
+	/**
+	 * @brief HighFiveDatasetHelper Constructor
+	 * @param dataset HighFive::DataSet to read/write
+	 * @param chunk_size Number of rows per chunk in the dataset
+	 */
 	HighFiveDatasetHelper(HighFive::DataSet const& dataset, size_t chunk_size = 128)
 	    : dataset_(dataset)
 	    , current_row_(0)
@@ -22,6 +32,10 @@ public:
 		}
 	}
 
+	/**
+	 * @brief Write a value to the column, resizing if necessary
+	 * @param data Value to write
+	 */
 	template<typename T>
 	void write(T const& data)
 	{
@@ -31,6 +45,11 @@ public:
 		current_row_++;
 	}
 
+	/**
+	 * @brief Write a value to the column, resizing if necessary
+	 * @param data Value to write
+	 * @param width Number of dataset values represented by data
+	 */
 	template<typename T>
 	void write(T const& data, size_t width)
 	{
@@ -40,6 +59,11 @@ public:
 		current_row_++;
 	}
 
+	/**
+	 * @brief Read a set of value from a row of the column
+	 * @param row Row to read
+	 * @return Vector of values read from column
+	 */
 	template<typename T>
 	std::vector<T> read(size_t row)
 	{
@@ -54,6 +78,11 @@ public:
 		return readBuf;
 	}
 
+	/**
+	 * @brief Read a single value from the column
+	 * @param row Row to read
+	 * @return Value in the first slot in the column at the desginated row
+	 */
 	template<typename T>
 	T readOne(size_t row)
 	{
@@ -63,7 +92,15 @@ public:
 		return T();
 	}
 
+	/**
+	 * @brief Get the number of rows in the column
+	 * @return The number of rows in the column
+	 */
 	size_t getDatasetSize() { return current_size_; }
+	/**
+	 * @brief Get the number of entries in each row
+	 * @return The number of entries in each row
+	 */
 	size_t getRowSize() { return dataset_.getDimensions()[1]; }
 
 private:

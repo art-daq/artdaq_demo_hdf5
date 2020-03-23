@@ -34,6 +34,7 @@ artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps
     : FragmentDataset(ps, ps.get<std::string>("mode", "write"))
     , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
     , output_(hep_hpc::hdf5::make_ntuple({ps.get<std::string>("fileName", "toyFragments.hdf5"), "TOYFragments"},
+                                         /** \cond */
                                          hep_hpc::hdf5::make_scalar_column<uint64_t>("sequenceID", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint16_t>("fragmentID", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint64_t>("timestamp", SCALAR_PROPERTIES),
@@ -45,6 +46,7 @@ artdaq::hdf5::ToyFragmentNtuple::ToyFragmentNtuple(fhicl::ParameterSet const& ps
                                          hep_hpc::hdf5::make_scalar_column<uint32_t>("total_adcs", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_scalar_column<uint32_t>("start_adc", SCALAR_PROPERTIES),
                                          hep_hpc::hdf5::make_column<uint16_t, 1>("ADCs", nWordsPerRow_, ARRAY_PROPERTIES)))
+										 /** \endcond */
     , fragments_(ps, output_.file())
 {
 	TLOG(TLVL_DEBUG) << "ToyFragmentNtuple CONSTRUCTOR START";

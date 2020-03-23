@@ -52,11 +52,8 @@ struct HDFFileReader
 	bool shutdownMsgReceived;                              ///< Whether a shutdown message has been received
 	size_t bytesRead;                                      ///< running total of number of bytes received
 	std::chrono::steady_clock::time_point last_read_time;  ///< Time last read was completed
-	                                                       // std::unique_ptr<SharedMemoryManager> data_shm; ///< SharedMemoryManager containing data
-	                                                       // std::unique_ptr<SharedMemoryManager> broadcast_shm; ///< SharedMemoryManager containing broadcasts (control
-	                                                       // Fragments)
 	unsigned readNext_calls_;                              ///< The number of times readNext has been called
-	std::unique_ptr<artdaq::hdf5::FragmentDataset> inputFile_;
+	std::unique_ptr<artdaq::hdf5::FragmentDataset> inputFile_; ///< The Dataset plugin which this input source will be reading from
 
 	/**
    * \brief HDFFileReader Constructor
