@@ -70,7 +70,6 @@ find_ups_boost( v1_50_0 filesystem
                         program_options
                         unit_test_framework
  )
- find_ups_product( hep_hpc v0_11_00 )
  find_ups_product( hdf5 v1_10_3)
 
 string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
