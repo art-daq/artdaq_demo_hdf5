@@ -70,8 +70,8 @@ find_ups_boost( v1_50_0 filesystem
                         program_options
                         unit_test_framework
  )
- find_ups_product( hep_hpc v0_11_00 )
  find_ups_product( hdf5 v1_10_3)
+set(HDF5_C_LIBRARIES $ENV{HDF5_LIB}/libhdf5_hl.so $ENV{HDF5_LIB}/libhdf5.so)
 
 string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
 list(GET ART_VERSION_LIST 0 ART_MAJOR_VERSION)
