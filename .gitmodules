@@ -1,3 +1,0 @@
-[submodule "artdaq-demo-hdf5/HDF5/highFive/HighFive"]
-	path = artdaq-demo-hdf5/HDF5/highFive/HighFive
-	url = https://github.com/BlueBrain/HighFive.git

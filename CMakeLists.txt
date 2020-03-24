@@ -106,13 +106,6 @@ else()
     set( MESSAGEFACILITY_LIBS MF_MessageLogger MF_Utilities)
 endif()
 
-message("Calling git submodule init in artdaq_demo_hdf5 from ${CMAKE_CURRENT_LIST_DIR} BEGIN")
-execute_process(COMMAND git submodule init WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-message("Calling git submodule init in artdaq_demo_hdf5 from ${CMAKE_CURRENT_LIST_DIR} END")
-message("Calling git submodule update in artdaq_demo_hdf5 from ${CMAKE_CURRENT_LIST_DIR}  BEGIN")
-execute_process(COMMAND git submodule update WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-message("Calling git submodule update in artdaq_demo_hdf5 from ${CMAKE_CURRENT_LIST_DIR} END")
-
 # macros for art_dictionary and simple_plugin
 include(ArtMake)
 include(BuildPlugins)
