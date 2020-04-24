@@ -1,10 +1,4 @@
 
-if( NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/HighFive )
-    message("Cloning HighFive into ${CMAKE_CURRENT_BINARY_DIR}/HighFive")
-    execute_process(COMMAND git clone https://github.com/BlueBrain/HighFive.git WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    include_directories(${CMAKE_CURRENT_BINARY_DIR}/HighFive)
-endif()
-
 simple_plugin(highFiveNtupleDataset "dataset" 
   ${HDF5_C_LIBRARIES}
  fhiclcpp
@@ -27,5 +21,46 @@ simple_plugin(highFiveGroupedDataset "dataset"
   art_Framework_Services_Registry
   art_Framework_IO
   art_Utilities
- ${Boost_SYSTEM_LIBRARY}
+)
+
+simple_plugin(highFiveGeoCmpltPDSPSample "dataset" 
+  ${HDF5_C_LIBRARIES}
+ fhiclcpp
+ canvas
+ cetlib
+ cetlib_except
+ artdaq-demo-hdf5_HDF5
+ artdaq-core_Data
+ artdaq_DAQdata
+  art_Framework_Services_Registry
+  art_Framework_IO
+  art_Utilities
+)
+
+simple_plugin(highFiveGeoSplitPDSPSample "dataset" 
+  ${HDF5_C_LIBRARIES}
+ fhiclcpp
+ canvas
+ cetlib
+ cetlib_except
+ artdaq-demo-hdf5_HDF5
+ artdaq-core_Data
+ artdaq_DAQdata
+  art_Framework_Services_Registry
+  art_Framework_IO
+  art_Utilities
+)
+
+simple_plugin(highFiveTimeBasedPDSPSample "dataset" 
+  ${HDF5_C_LIBRARIES}
+ fhiclcpp
+ canvas
+ cetlib
+ cetlib_except
+ artdaq-demo-hdf5_HDF5
+ artdaq-core_Data
+ artdaq_DAQdata
+  art_Framework_Services_Registry
+  art_Framework_IO
+  art_Utilities
 )
