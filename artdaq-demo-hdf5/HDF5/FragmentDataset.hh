@@ -36,7 +36,7 @@ public:
 	 *
 	 * FragmentDataset takes no Parameters.
 	 */
-	FragmentDataset(fhicl::ParameterSet const& ps, std::string mode);
+	FragmentDataset(fhicl::ParameterSet const& ps, const std::string& mode);
 	/**
 	 * @brief FragmentDataset default virtual destructor
 	 */

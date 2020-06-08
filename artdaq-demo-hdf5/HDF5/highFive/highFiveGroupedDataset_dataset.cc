@@ -10,13 +10,14 @@
 #define TLVL_READFRAGMENT_V 13
 #define TLVL_GETEVENTHEADER 14
 
-#include <unordered_map>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
 #include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 #include "canvas/Persistency/Provenance/EventID.h"
+#include <memory>
+#include <unordered_map>
 
 namespace artdaq {
 namespace hdf5 {
@@ -41,7 +42,7 @@ public:
 	/**
 	 * @brief HighFiveGroupedDataset Destructor
 	 */
-	virtual ~HighFiveGroupedDataset() noexcept;
+	~HighFiveGroupedDataset() noexcept override;
 
 	/**
 	 * @brief Insert a Fragment into the Dataset (write it to the HDF5 file)
@@ -55,7 +56,7 @@ public:
 	 * @brief Insert several Fragments into the Dataset (write them to the HDF5 file)
 	 * @param frags Fragments to insert
 	 */
-	void insertMany(artdaq::Fragments const& frags) override;
+	void insertMany(artdaq::Fragments const& fs) override;
 	/**
 	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)
 	 * @param hdr RawEventHeader to insert
@@ -94,11 +95,11 @@ artdaq::hdf5::HighFiveGroupedDataset::HighFiveGroupedDataset(fhicl::ParameterSet
 	TLOG(TLVL_DEBUG) << "HighFiveGroupedDataset CONSTRUCTOR BEGIN";
 	if (mode_ == FragmentDatasetMode::Read)
 	{
-		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::ReadOnly));
+		file_ = std::make_unique<HighFive::File>(ps.get<std::string>("fileName"), HighFive::File::ReadOnly);
 	}
 	else
 	{
-		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate));
+		file_ = std::make_unique<HighFive::File>(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate);
 	}
 	TLOG(TLVL_DEBUG) << "HighFiveGroupedDataset CONSTRUCTOR END";
 }
@@ -191,7 +192,8 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 void artdaq::hdf5::HighFiveGroupedDataset::insertMany(artdaq::Fragments const& fs)
 {
 	TLOG(TLVL_TRACE) << "insertMany BEGIN";
-	for (auto& f : fs) insertOne(f);
+	for (auto& f : fs) { insertOne(f);
+}
 	TLOG(TLVL_TRACE) << "insertMany END";
 }
 
@@ -259,9 +261,9 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 					container_group.getAttribute("timestamp").read(timestamp);
 					Fragment::fragment_id_t fragID;
 					container_group.getAttribute("fragment_id").read(fragID);
-					if (!output.count(type))
+					if (output.count(type) == 0u)
 					{
-						output[type].reset(new Fragments());
+						output[type] = std::make_unique<Fragments>();
 					}
 					output[type]->emplace_back(seqID, fragID);
 					output[type]->back().setTimestamp(timestamp);
@@ -276,13 +278,14 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 					container_group.getAttribute("container_missing_data").read(missing_data);
 
 					cfl.set_fragment_type(container_fragment_type);
-					cfl.set_missing_data(missing_data);
+					cfl.set_missing_data(missing_data != 0);
 
 					TLOG(TLVL_READNEXTEVENT) << "readNextEvent: Reading ContainerFragment Fragments";
 					auto fragments = container_group.listObjectNames();
 					for (auto& fragname : fragments)
 					{
-						if (container_group.getObjectType(fragname) != HighFive::ObjectType::Dataset) continue;
+						if (container_group.getObjectType(fragname) != HighFive::ObjectType::Dataset) { continue;
+}
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ BEGIN";
 						auto frag = readFragment_(container_group.getDataSet(fragname, fragmentAProps_));
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ END";
@@ -299,9 +302,9 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 					TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ END";
 
 					TLOG(TLVL_READNEXTEVENT) << "readNextEvent: Adding Fragment to output";
-					if (!output.count(frag->type()))
+					if (output.count(frag->type()) == 0u)
 					{
-						output[frag->type()].reset(new artdaq::Fragments());
+						output[frag->type()] = std::make_unique<artdaq::Fragments>();
 					}
 					output[frag->type()]->push_back(*frag.release());
 				}

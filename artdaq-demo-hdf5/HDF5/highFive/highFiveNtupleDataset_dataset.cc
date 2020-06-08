@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "tracemf.h"
 #define TRACE_NAME "HighFiveNtupleDataset"
 
@@ -10,8 +12,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
     , headerIndex_(0)
     , fragmentIndex_(0)
     , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
-    , fragment_datasets_()
-    , event_datasets_()
+     
 {
 	TLOG(TLVL_DEBUG) << "HighFiveNtupleDataset Constructor BEGIN";
 	auto payloadChunkSize = ps.get<size_t>("payloadChunkSize", 128);
@@ -21,7 +22,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
 	if (mode_ == FragmentDatasetMode::Read)
 	{
 		TLOG(TLVL_TRACE) << "HighFiveNtupleDataset: Opening input file and getting Dataset pointers";
-		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::ReadOnly));
+		file_ = std::make_unique<HighFive::File>(ps.get<std::string>("fileName"), HighFive::File::ReadOnly);
 
 		auto fragmentGroup = file_->getGroup("/Fragments");
 		fragment_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(fragmentGroup.getDataSet("sequenceID"));
@@ -41,7 +42,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
 	else
 	{
 		TLOG(TLVL_TRACE) << "HighFiveNtupleDataset: Creating output file";
-		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate));
+		file_ = std::make_unique<HighFive::File>(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate);
 
 		HighFive::DataSetCreateProps scalar_props;
 		scalar_props.add(HighFive::Chunking(std::vector<hsize_t>{128, 1}));
@@ -170,7 +171,7 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 			memcpy(frag.headerBegin() + index, &(payloadvec[0]), thisRowSize * sizeof(artdaq::RawDataType));
 		}
 
-		if (!output.count(type))
+		if (output.count(type) == 0u)
 		{
 			output[type] = std::make_unique<artdaq::Fragments>();
 		}
@@ -200,7 +201,8 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveNtupleData
 		}
 	}
 
-	if (headerIndex_ >= numHeaders) return nullptr;
+	if (headerIndex_ >= numHeaders) { return nullptr;
+}
 
 	TLOG(9) << "getEventHeader: Matching header found. Populating output";
 	auto runID = event_datasets_["run_id"]->readOne<uint32_t>(headerIndex_);
@@ -208,7 +210,7 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveNtupleData
 	auto eventID = event_datasets_["event_id"]->readOne<uint32_t>(headerIndex_);
 
 	artdaq::detail::RawEventHeader hdr(runID, subrunID, eventID, sequence_id);
-	hdr.is_complete = event_datasets_["is_complete"]->readOne<uint8_t>(headerIndex_);
+	hdr.is_complete = (event_datasets_["is_complete"]->readOne<uint8_t>(headerIndex_) != 0u);
 
 	TLOG(TLVL_TRACE) << "getEventHeader END";
 	return std::make_unique<artdaq::detail::RawEventHeader>(hdr);

@@ -17,14 +17,14 @@
 
 #include "artdaq/DAQdata/Globals.hh"
 
-#include <stdio.h>
-#include <unistd.h>
+#include <cstdio>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 namespace art {
@@ -56,17 +56,17 @@ public:
 	/**
 	 * \brief HDFFileOutput Destructor
 	 */
-	virtual ~HDFFileOutput();
+	~HDFFileOutput() override;
 
 private:
 	void beginJob() override;
 
 	void endJob() override;
 
-	void write(EventPrincipal&) override;
+	void write(EventPrincipal& /*ep*/) override;
 
-	void writeRun(RunPrincipal&) override{};
-	void writeSubRun(SubRunPrincipal&) override{};
+	void writeRun(RunPrincipal& /*r*/) override{};
+	void writeSubRun(SubRunPrincipal& /*sr*/) override{};
 
 private:
 	std::string name_ = "HDFFileOutput";
@@ -127,7 +127,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 		{
 			auto const raw_event_handle = RawEventHandle(result_handle);
 
-			if (raw_event_handle.isValid() && raw_event_handle.product()->size() > 0)
+			if (raw_event_handle.isValid() && !raw_event_handle.product()->empty())
 			{
 				TLOG(10) << "raw_event_handle labels: branchName:" << raw_event_handle.provenance()->branchName();
 				TLOG(10) << "raw_event_handle labels: friendlyClassName:" << raw_event_handle.provenance()->friendlyClassName();
@@ -187,7 +187,6 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	fstats_.recordEvent(ep.eventID());
 #endif
 	TLOG(TLVL_TRACE) << "End: HDFFileOUtput::write(EventPrincipal& ep)";
-	return;
 }
 
 DEFINE_ART_MODULE(art::HDFFileOutput)

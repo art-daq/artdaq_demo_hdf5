@@ -21,7 +21,7 @@ namespace artdaq {
 /**
 	 * \brief HDFFileInput is a typedef of art::Source<detail::HDFFileReader>
 	 */
-typedef art::Source<detail::HDFFileReader> HDFFileInput;
+using HDFFileInput = art::Source<detail::HDFFileReader>;
 }  // namespace artdaq
 
 DEFINE_ART_INPUT_SOURCE(artdaq::HDFFileInput)
