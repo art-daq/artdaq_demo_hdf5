@@ -17,6 +17,7 @@
 
 #include "artdaq/DAQdata/Globals.hh"
 
+#include <unistd.h>
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
@@ -24,7 +25,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
 
 namespace art {
@@ -189,4 +189,4 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	TLOG(TLVL_TRACE) << "End: HDFFileOUtput::write(EventPrincipal& ep)";
 }
 
-DEFINE_ART_MODULE(art::HDFFileOutput)
+DEFINE_ART_MODULE(art::HDFFileOutput)// NOLINT(performance-unnecessary-value-param)

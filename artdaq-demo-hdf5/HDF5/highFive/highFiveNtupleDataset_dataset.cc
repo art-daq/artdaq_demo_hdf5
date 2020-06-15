@@ -12,7 +12,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
     , headerIndex_(0)
     , fragmentIndex_(0)
     , nWordsPerRow_(ps.get<size_t>("nWordsPerRow", 10240))
-     
+
 {
 	TLOG(TLVL_DEBUG) << "HighFiveNtupleDataset Constructor BEGIN";
 	auto payloadChunkSize = ps.get<size_t>("payloadChunkSize", 128);
@@ -201,8 +201,10 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveNtupleData
 		}
 	}
 
-	if (headerIndex_ >= numHeaders) { return nullptr;
-}
+	if (headerIndex_ >= numHeaders)
+	{
+		return nullptr;
+	}
 
 	TLOG(9) << "getEventHeader: Matching header found. Populating output";
 	auto runID = event_datasets_["run_id"]->readOne<uint32_t>(headerIndex_);

@@ -10,14 +10,14 @@
 #define TLVL_READFRAGMENT_V 13
 #define TLVL_GETEVENTHEADER 14
 
+#include <memory>
+#include <unordered_map>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
 #include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 #include "canvas/Persistency/Provenance/EventID.h"
-#include <memory>
-#include <unordered_map>
 
 namespace artdaq {
 namespace hdf5 {
@@ -192,8 +192,10 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 void artdaq::hdf5::HighFiveGroupedDataset::insertMany(artdaq::Fragments const& fs)
 {
 	TLOG(TLVL_TRACE) << "insertMany BEGIN";
-	for (auto& f : fs) { insertOne(f);
-}
+	for (auto& f : fs)
+	{
+		insertOne(f);
+	}
 	TLOG(TLVL_TRACE) << "insertMany END";
 }
 
@@ -284,8 +286,10 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 					auto fragments = container_group.listObjectNames();
 					for (auto& fragname : fragments)
 					{
-						if (container_group.getObjectType(fragname) != HighFive::ObjectType::Dataset) { continue;
-}
+						if (container_group.getObjectType(fragname) != HighFive::ObjectType::Dataset)
+						{
+							continue;
+						}
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ BEGIN";
 						auto frag = readFragment_(container_group.getDataSet(fragname, fragmentAProps_));
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ END";

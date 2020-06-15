@@ -374,7 +374,7 @@ struct HDFFileReader
 		TLOG_TRACE("HDFFileReader") << "After putting fragments in event";
 
 		auto read_finish_time = std::chrono::steady_clock::now();
-		TLOG_ARB(10, "HDFFileReader") << "readNext: bytesRead=" << bytesRead << " metricMan=" << (void*)metricMan.get();
+		TLOG_ARB(10, "HDFFileReader") << "readNext: bytesRead=" << bytesRead << " metricMan=" << static_cast<void*>(metricMan.get());
 		if (metricMan)
 		{
 			metricMan->sendMetric("Avg Processing Time", artdaq::TimeUtils::GetElapsedTime(last_read_time, read_start_time),
