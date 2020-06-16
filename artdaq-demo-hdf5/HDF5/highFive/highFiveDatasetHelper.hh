@@ -1,7 +1,7 @@
 #ifndef artdaq_demo_hdf5_HDF5_highFive_highFiveDatasetHelper_hh
 #define artdaq_demo_hdf5_HDF5_highFive_highFiveDatasetHelper_hh 1
 
-#include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5DataSet.hpp"
+#include <artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5DataSet.hpp>
 
 namespace artdaq {
 namespace hdf5 {
@@ -87,7 +87,7 @@ public:
 	T readOne(size_t row)
 	{
 		auto res = read<T>(row);
-		if (res.size()) return res[0];
+		if (!res.empty()) return res[0];
 
 		return T();
 	}

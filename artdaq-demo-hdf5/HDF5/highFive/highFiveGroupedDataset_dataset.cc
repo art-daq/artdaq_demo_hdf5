@@ -15,7 +15,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
-#include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
+#include <artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp>
 #include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 
@@ -77,6 +77,11 @@ public:
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
+	HighFiveGroupedDataset(HighFiveGroupedDataset const&) = delete;
+	HighFiveGroupedDataset(HighFiveGroupedDataset&&) = delete;
+	HighFiveGroupedDataset& operator=(HighFiveGroupedDataset const&) = delete;
+	HighFiveGroupedDataset& operator=(HighFiveGroupedDataset&&) = delete;
+
 	std::unique_ptr<HighFive::File> file_;
 	size_t eventIndex_;
 	art::ServiceHandle<ArtdaqFragmentNamingServiceInterface> namingService_;
@@ -435,7 +440,7 @@ artdaq::FragmentPtr artdaq::hdf5::HighFiveGroupedDataset::readFragment_(HighFive
 	memcpy(frag->headerAddress(), &fragHdr, sizeof(fragHdr));
 
 	TLOG(TLVL_READFRAGMENT_V) << "readFragment_: Reading payload data into Fragment BEGIN";
-	dataset.read(frag->headerAddress() + frag->headerSizeWords());
+	dataset.read(frag->headerAddress() + frag->headerSizeWords()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	TLOG(TLVL_READFRAGMENT_V) << "readFragment_: Reading payload data into Fragment END";
 
 	TLOG(TLVL_TRACE) << "readFragment_ END";

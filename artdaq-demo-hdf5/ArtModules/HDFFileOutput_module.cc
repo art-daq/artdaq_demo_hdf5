@@ -59,6 +59,11 @@ public:
 	~HDFFileOutput() override;
 
 private:
+	HDFFileOutput(HDFFileOutput const&) = delete;
+	HDFFileOutput(HDFFileOutput&&) = delete;
+	HDFFileOutput& operator=(HDFFileOutput const&) = delete;
+	HDFFileOutput& operator=(HDFFileOutput&&) = delete;
+
 	void beginJob() override;
 
 	void endJob() override;

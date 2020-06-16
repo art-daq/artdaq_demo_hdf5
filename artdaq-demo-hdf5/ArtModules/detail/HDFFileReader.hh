@@ -46,6 +46,16 @@ struct HDFFileReader
    * \return HDFFileReader copy
    */
 	HDFFileReader& operator=(HDFFileReader const&) = delete;
+	/**
+   * \brief Move Constructor is deleted
+   */
+	HDFFileReader(HDFFileReader&&) = delete;
+
+	/**
+   * \brief Move Assignment operator is deleted
+   * \return HDFFileReader copy
+   */
+	HDFFileReader& operator=(HDFFileReader&&) = delete;
 
 	art::SourceHelper const& pmaker;                            ///< An art::SourceHelper instance
 	std::string pretend_module_name;                            ///< The module name to store data under
@@ -176,9 +186,9 @@ struct HDFFileReader
 		art::ServiceHandle<ArtdaqFragmentNamingServiceInterface> translator;
 
 		// Establish default 'results'
-		outR = 0;
-		outSR = 0;
-		outE = 0;
+		outR = nullptr;
+		outSR = nullptr;
+		outE = nullptr;
 		// Try to get an event from the queue. We'll continuously loop, either until:
 		//   1) we have read a RawEvent off the queue, or
 		//   2) we have timed out, AND we are told the when we timeout we
@@ -194,7 +204,7 @@ struct HDFFileReader
 		auto read_start_time = std::chrono::steady_clock::now();
 
 		std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> eventMap = inputFile_->readNextEvent();
-		if (eventMap.size() == 0)
+		if (eventMap.empty())
 		{
 			TLOG_ERROR("HDFFileReader") << "No data received, either because of incompatible plugin or end of file. Returning false (should exit art)";
 			shutdownMsgReceived = true;
@@ -203,7 +213,7 @@ struct HDFFileReader
 
 		auto got_event_time = std::chrono::steady_clock::now();
 		auto firstFragmentType = eventMap.begin()->first;
-		TLOG_DEBUG("HDFFileReader") << "First Fragment type is " << (int)firstFragmentType << " ("
+		TLOG_DEBUG("HDFFileReader") << "First Fragment type is " << static_cast<int>(firstFragmentType) << " ("
 		                            << translator->GetInstanceNameForType(firstFragmentType) << ")";
 		// We return false, indicating we're done reading, if:
 		//   1) we did not obtain an event, because we timed out and were
@@ -252,7 +262,7 @@ struct HDFFileReader
 		}
 
 		// make new run if inR is 0 or if the run has changed
-		if (inR == 0 || inR->run() != evtHeader->run_id)
+		if (inR == nullptr || inR->run() != evtHeader->run_id)
 		{
 			outR = pmaker.makeRunPrincipal(evtHeader->run_id, currentTime);
 		}
@@ -268,7 +278,7 @@ struct HDFFileReader
 		else if (firstFragmentType == Fragment::EndOfSubrunFragmentType)
 		{
 			// Check if inR == 0 or is a new run
-			if (inR == 0 || inR->run() != evtHeader->run_id)
+			if (inR == nullptr || inR->run() != evtHeader->run_id)
 			{
 				outSR = pmaker.makeSubRunPrincipal(evtHeader->run_id, evtHeader->subrun_id, currentTime);
 #if ART_HEX_VERSION > 0x30000
@@ -285,9 +295,9 @@ struct HDFFileReader
 				// to generate a flush event with a valid run but flush subrun and event number in order
 				// to end the subrun.
 #if ART_HEX_VERSION > 0x30000
-				if (inSR != 0 && !inSR->subRunID().isFlush() && inSR->subRun() == evtHeader->subrun_id)
+				if (inSR != nullptr && !inSR->subRunID().isFlush() && inSR->subRun() == evtHeader->subrun_id)
 #else
-				if (inSR != 0 && !inSR->id().isFlush() && inSR->subRun() == evtHeader->subrun_id)
+				if (inSR != nullptr && !inSR->id().isFlush() && inSR->subRun() == evtHeader->subrun_id)
 #endif
 				{
 #if ART_HEX_VERSION > 0x30000
@@ -313,7 +323,7 @@ struct HDFFileReader
 					// Possible error condition
 					//} else {
 				}
-				outR = 0;
+				outR = nullptr;
 			}
 			// outputFileCloseNeeded = true;
 			return true;
@@ -322,10 +332,10 @@ struct HDFFileReader
 		// make new subrun if inSR is 0 or if the subrun has changed
 		art::SubRunID subrun_check(evtHeader->run_id, evtHeader->subrun_id);
 #if ART_HEX_VERSION > 0x30000
-		if (inSR == 0 || subrun_check != inSR->subRunID())
+		if (inSR == nullptr || subrun_check != inSR->subRunID())
 		{
 #else
-		if (inSR == 0 || subrun_check != inSR->id())
+		if (inSR == nullptr || subrun_check != inSR->id())
 		{
 #endif
 			outSR = pmaker.makeSubRunPrincipal(evtHeader->run_id, evtHeader->subrun_id, currentTime);
@@ -336,7 +346,7 @@ struct HDFFileReader
 		for (auto& fragmentTypePair : eventMap)
 		{
 			auto type_code = fragmentTypePair.first;
-			TLOG_TRACE("HDFFileReader") << "Before GetFragmentsByType call, type is " << (int)type_code;
+			TLOG_TRACE("HDFFileReader") << "Before GetFragmentsByType call, type is " << static_cast<int>(type_code);
 			TLOG_TRACE("HDFFileReader") << "After GetFragmentsByType call, number of fragments is " << fragmentTypePair.second->size();
 
 			std::unordered_map<std::string, std::unique_ptr<Fragments>> derived_fragments;
@@ -350,7 +360,7 @@ struct HDFFileReader
 				if (!instance_name_result.first)
 				{
 					TLOG_WARNING("HDFFileReader")
-					    << "UnknownFragmentType: The product instance name mapping for fragment type \"" << ((int)type_code)
+					    << "UnknownFragmentType: The product instance name mapping for fragment type \"" << static_cast<int>(type_code)
 					    << "\" is not known. Fragments of this "
 					    << "type will be stored in the event with an instance name of \"" << label << "\".";
 				}

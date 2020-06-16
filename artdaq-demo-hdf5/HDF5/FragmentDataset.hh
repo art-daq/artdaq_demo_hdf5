@@ -54,7 +54,7 @@ public:
 	 */
 	virtual void insertMany(Fragments const& fs)
 	{
-		for (auto f : fs) insertOne(f);
+		for (auto const& f : fs) insertOne(f);
 	}
 	/**
 	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)
@@ -81,6 +81,11 @@ public:
 
 protected:
 	FragmentDatasetMode mode_;  ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
+private:
+	FragmentDataset(FragmentDataset const&) = delete;
+	FragmentDataset(FragmentDataset&&) = delete;
+	FragmentDataset& operator=(FragmentDataset const&) = delete;
+	FragmentDataset& operator=(FragmentDataset&&) = delete;
 };
 
 }  // namespace hdf5
