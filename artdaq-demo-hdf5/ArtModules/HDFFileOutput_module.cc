@@ -175,7 +175,7 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	if (!hdr_found)
 	{
 		TLOG(5) << "write: Header not found, autogenerating";
-		artdaq::detail::RawEventHeader hdr(ep.run(), ep.subRun(), ep.event(), sequence_id);
+		artdaq::detail::RawEventHeader hdr(ep.run(), ep.subRun(), ep.event(), sequence_id, 0);
 		hdr.is_complete = true;
 
 		ntuple_->insertHeader(hdr);

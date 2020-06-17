@@ -207,6 +207,7 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertHeader(artdaq::detail::RawEvent
 	eventGroup.createAttribute("run_id", hdr.run_id);
 	eventGroup.createAttribute("subrun_id", hdr.subrun_id);
 	eventGroup.createAttribute("event_id", hdr.event_id);
+	eventGroup.createAttribute("timestamp", hdr.timestamp);
 	eventGroup.createAttribute("is_complete", hdr.is_complete);
 	TLOG(TLVL_TRACE) << "insertHeader END";
 }
@@ -326,12 +327,14 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGroupedDat
 	auto seqIDGroup = file_->getGroup(std::to_string(seqID));
 
 	uint32_t runID, subrunID, eventID;
+	uint64_t timestamp;
 	seqIDGroup.getAttribute("run_id").read(runID);
 	seqIDGroup.getAttribute("subrun_id").read(subrunID);
 	seqIDGroup.getAttribute("event_id").read(eventID);
+	seqIDGroup.getAttribute("timestamp").read(timestamp);
 
 	TLOG(TLVL_GETEVENTHEADER) << "Creating EventHeader with runID " << runID << ", subrunID " << subrunID << ", eventID " << eventID << " (seqID " << seqID << ")";
-	artdaq::detail::RawEventHeader hdr(runID, subrunID, eventID, seqID);
+	artdaq::detail::RawEventHeader hdr(runID, subrunID, eventID, seqID, timestamp);
 	seqIDGroup.getAttribute("is_complete").read(hdr.is_complete);
 
 	TLOG(TLVL_TRACE) << "GetEventHeader END";

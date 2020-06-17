@@ -36,6 +36,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
 		event_datasets_["subrun_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("subrun_id"));
 		event_datasets_["event_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("event_id"));
 		event_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("sequenceID"));
+		event_datasets_["timestamp"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("timestamp"));
 		event_datasets_["is_complete"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.getDataSet("is_complete"));
 	}
 	else
@@ -67,6 +68,7 @@ artdaq::hdf5::HighFiveNtupleDataset::HighFiveNtupleDataset(fhicl::ParameterSet c
 		event_datasets_["subrun_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("subrun_id", scalarSpace, scalar_props));
 		event_datasets_["event_id"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint32_t>("event_id", scalarSpace, scalar_props));
 		event_datasets_["sequenceID"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint64_t>("sequenceID", scalarSpace, scalar_props));
+		event_datasets_["timestamp"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint64_t>("timestamp", scalarSpace, scalar_props));
 		event_datasets_["is_complete"] = std::make_unique<HighFiveDatasetHelper>(headerGroup.createDataSet<uint8_t>("is_complete", scalarSpace, scalar_props));
 	}
 	TLOG(TLVL_DEBUG) << "HighFiveNtupleDataset Constructor END";
@@ -115,6 +117,7 @@ void artdaq::hdf5::HighFiveNtupleDataset::insertHeader(artdaq::detail::RawEventH
 	event_datasets_["subrun_id"]->write(hdr.subrun_id);
 	event_datasets_["event_id"]->write(hdr.event_id);
 	event_datasets_["sequenceID"]->write(hdr.sequence_id);
+	event_datasets_["timestamp"]->write(hdr.timestamp);
 	event_datasets_["is_complete"]->write(hdr.is_complete);
 
 	TLOG(TLVL_TRACE) << "insertHeader END";
@@ -206,8 +209,9 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveNtupleData
 	auto runID = event_datasets_["run_id"]->readOne<uint32_t>(headerIndex_);
 	auto subrunID = event_datasets_["subrun_id"]->readOne<uint32_t>(headerIndex_);
 	auto eventID = event_datasets_["event_id"]->readOne<uint32_t>(headerIndex_);
+	auto timestamp = event_datasets_["timestamp"]->readOne<uint64_t>(headerIndex_);
 
-	artdaq::detail::RawEventHeader hdr(runID, subrunID, eventID, sequence_id);
+	artdaq::detail::RawEventHeader hdr(runID, subrunID, eventID, sequence_id, timestamp);
 	hdr.is_complete = event_datasets_["is_complete"]->readOne<uint8_t>(headerIndex_);
 
 	TLOG(TLVL_TRACE) << "getEventHeader END";
