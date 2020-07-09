@@ -1,7 +1,7 @@
 
 if( NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/HighFive )
     message("Cloning HighFive into ${CMAKE_CURRENT_BINARY_DIR}/HighFive")
-    execute_process(COMMAND git clone https://github.com/BlueBrain/HighFive.git WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    execute_process(COMMAND git clone --branch v2.2.1 https://github.com/BlueBrain/HighFive.git WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/HighFive)
 endif()
 

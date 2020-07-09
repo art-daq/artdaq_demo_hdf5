@@ -1,7 +1,9 @@
-art_make(BASENAME_ONLY
+cet_make_library(
   LIBRARY_NAME artdaq-demo-hdf5_HDF5
-  NO_PLUGINS
-  LIB_LIBRARIES
+  SOURCE
+  FragmentDataset.cc
+  MakeDatasetPlugin.cc
+  LIBRARIES
   fhiclcpp
   ${CETLIB}
   ${CETLIB_EXCEPT}
