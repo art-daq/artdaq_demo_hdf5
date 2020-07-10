@@ -64,7 +64,7 @@ artdaq::hdf5::ToyFragmentNtuple::~ToyFragmentNtuple()
 	TLOG(TLVL_DEBUG) << "ToyFragmentNtuple DESTRUCTOR END";
 }
 
-void artdaq::hdf5::ToyFragmentNtuple::insertOne(artdaq::Fragment const& f)
+void artdaq::hdf5::ToyFragmentNtuple::insertOne(artdaq::Fragment const& f, std::string /*instance_name*/)
 {
 	TLOG(TLVL_TRACE) << "ToyFragmentNtuple::insertOne BEGIN";
 	if (f.type() != demo::FragmentType::TOY1 && f.type() != demo::FragmentType::TOY2)

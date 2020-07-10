@@ -44,17 +44,19 @@ public:
 	/**
 	 * @brief Insert a Fragment into the Dataset (write it to the HDF5 file)
 	 * @param f Fragment to insert
+	 * @param instance_name String name to identify Fragment
 	 *
 	 * This function is pure virtual.
 	 */
-	virtual void insertOne(Fragment const& f) = 0;
+	virtual void insertOne(Fragment const& f, std::string instance_name = "") = 0;
 	/**
 	 * @brief Insert several Fragments into the Dataset (write them to the HDF5 file)
 	 * @param fs Fragments to insert
+	 * @param instance_name String name to identify Fragments
 	 */
-	virtual void insertMany(Fragments const& fs)
+	virtual void insertMany(Fragments const& fs, std::string instance_name = "")
 	{
-		for (auto f : fs) insertOne(f);
+		for (auto f : fs) insertOne(f, instance_name);
 	}
 	/**
 	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)

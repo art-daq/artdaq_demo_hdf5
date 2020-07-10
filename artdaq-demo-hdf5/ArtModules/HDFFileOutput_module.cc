@@ -16,6 +16,7 @@
 #include "fhiclcpp/ParameterSet.h"
 
 #include "artdaq/DAQdata/Globals.hh"
+#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -80,6 +81,7 @@ art::HDFFileOutput::HDFFileOutput(ParameterSet const& ps)
     , fstats_{name_, processName()}
 {
 	TLOG(TLVL_DEBUG) << "Begin: HDFFileOutput::HDFFileOutput(ParameterSet const& ps)\n";
+
 	ntuple_ = artdaq::hdf5::MakeDatasetPlugin(ps, "dataset");
 	TLOG(TLVL_DEBUG)
 	    << "End: HDFFileOutput::HDFFileOutput(ParameterSet const& ps)\n";
@@ -110,6 +112,8 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	auto hdr_found = false;
 	auto sequence_id = artdaq::Fragment::InvalidSequenceID;
 
+	art::ServiceHandle<ArtdaqFragmentNamingServiceInterface> namingService;
+
 	TLOG(5) << "write: Retrieving event Fragments";
 	{
 		auto result_handles = std::vector<art::GroupQueryResult>();
@@ -136,8 +140,10 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 				TLOG(10) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
 				sequence_id = (*raw_event_handle).front().sequenceID();
 
+				auto instance_name = namingService->GetInstanceNameForFragment((*raw_event_handle).front());
+
 				TLOG(5) << "write: Writing to dataset";
-				ntuple_->insertMany(*raw_event_handle);
+				ntuple_->insertMany(*raw_event_handle, instance_name.second);
 			}
 		}
 	}

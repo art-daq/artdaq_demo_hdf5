@@ -37,7 +37,7 @@ public:
 	 * 
 	 * If the Fragment is not a ToyFragment, it will be inserted into the FragmentNtuple datset
 	 */
-	void insertOne(artdaq::Fragment const& f) override;
+	void insertOne(artdaq::Fragment const& f, std::string instance_name) override;
 
 	/**
 	 * @brief Insert a RawEventHeader into the Event Header Ntuple Dataset (write it to the HDF5 file)

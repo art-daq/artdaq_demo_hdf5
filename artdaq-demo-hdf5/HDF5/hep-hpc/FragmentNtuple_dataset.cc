@@ -95,7 +95,7 @@ artdaq::hdf5::FragmentNtuple::~FragmentNtuple()
 	TLOG(TLVL_DEBUG) << "FragmentNtuple Destructor END";
 }
 
-void artdaq::hdf5::FragmentNtuple::insertOne(artdaq::Fragment const& frag)
+void artdaq::hdf5::FragmentNtuple::insertOne(artdaq::Fragment const& frag, std::string /*instance_name*/)
 {
 	TLOG(TLVL_TRACE) << "FragmentNtuple::insertOne BEGIN";
 

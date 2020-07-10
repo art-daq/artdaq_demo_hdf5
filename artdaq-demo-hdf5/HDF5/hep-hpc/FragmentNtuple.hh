@@ -60,7 +60,7 @@ public:
 	 * @brief Insert a Fragment into the Fragment Ntuple Dataset (write it to the HDF5 file)
 	 * @param frag Fragment to insert
 	 */
-	void insertOne(artdaq::Fragment const& frag) override;
+	void insertOne(artdaq::Fragment const& frag, std::string instance_name) override;
 
 	/**
 	 * @brief Insert a RawEventHeader into the Event Header Ntuple Dataset (write it to the HDF5 file)
