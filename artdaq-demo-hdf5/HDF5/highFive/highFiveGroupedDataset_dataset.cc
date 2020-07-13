@@ -10,6 +10,7 @@
 #define TLVL_READFRAGMENT_V 13
 #define TLVL_GETEVENTHEADER 14
 
+#include <memory>
 #include <unordered_map>
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
@@ -39,7 +40,7 @@ public:
 	/**
 	 * @brief HighFiveGroupedDataset Destructor
 	 */
-	virtual ~HighFiveGroupedDataset() noexcept;
+	~HighFiveGroupedDataset() noexcept override;
 
 	/**
 	 * @brief Insert a Fragment into the Dataset (write it to the HDF5 file)
@@ -74,6 +75,11 @@ public:
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
+	HighFiveGroupedDataset(HighFiveGroupedDataset const&) = delete;
+	HighFiveGroupedDataset(HighFiveGroupedDataset&&) = delete;
+	HighFiveGroupedDataset& operator=(HighFiveGroupedDataset const&) = delete;
+	HighFiveGroupedDataset& operator=(HighFiveGroupedDataset&&) = delete;
+
 	std::unique_ptr<HighFive::File> file_;
 	size_t eventIndex_;
 	std::unordered_map<artdaq::Fragment::type_t, std::string> fragment_type_names_;
@@ -106,11 +112,11 @@ artdaq::hdf5::HighFiveGroupedDataset::HighFiveGroupedDataset(fhicl::ParameterSet
 	TLOG(TLVL_DEBUG) << "HighFiveGroupedDataset CONSTRUCTOR BEGIN";
 	if (mode_ == FragmentDatasetMode::Read)
 	{
-		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::ReadOnly));
+		file_ = std::make_unique<HighFive::File>(ps.get<std::string>("fileName"), HighFive::File::ReadOnly);
 	}
 	else
 	{
-		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate));
+		file_ = std::make_unique<HighFive::File>(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate);
 	}
 
 	auto extraTypes = ps.get<std::vector<std::pair<artdaq::Fragment::type_t, std::string>>>("fragment_type_names", std::vector<std::pair<artdaq::Fragment::type_t, std::string>>());
@@ -281,9 +287,9 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 					container_group.getAttribute("timestamp").read(timestamp);
 					Fragment::fragment_id_t fragID;
 					container_group.getAttribute("fragment_id").read(fragID);
-					if (!output.count(type))
+					if (output.count(type) == 0u)
 					{
-						output[type].reset(new Fragments());
+						output[type] = std::make_unique<Fragments>();
 					}
 					output[type]->emplace_back(seqID, fragID);
 					output[type]->back().setTimestamp(timestamp);
@@ -298,13 +304,16 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 					container_group.getAttribute("container_missing_data").read(missing_data);
 
 					cfl.set_fragment_type(container_fragment_type);
-					cfl.set_missing_data(missing_data);
+					cfl.set_missing_data(missing_data != 0);
 
 					TLOG(TLVL_READNEXTEVENT) << "readNextEvent: Reading ContainerFragment Fragments";
 					auto fragments = container_group.listObjectNames();
 					for (auto& fragname : fragments)
 					{
-						if (container_group.getObjectType(fragname) != HighFive::ObjectType::Dataset) continue;
+						if (container_group.getObjectType(fragname) != HighFive::ObjectType::Dataset)
+						{
+							continue;
+						}
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ BEGIN";
 						auto frag = readFragment_(container_group.getDataSet(fragname, fragmentAProps_));
 						TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ END";
@@ -321,9 +330,9 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 					TLOG(TLVL_READNEXTEVENT_V) << "readNextEvent: Calling readFragment_ END";
 
 					TLOG(TLVL_READNEXTEVENT) << "readNextEvent: Adding Fragment to output";
-					if (!output.count(frag->type()))
+					if (output.count(frag->type()) == 0u)
 					{
-						output[frag->type()].reset(new artdaq::Fragments());
+						output[frag->type()] = std::make_unique<artdaq::Fragments>();
 					}
 					output[frag->type()]->push_back(*frag.release());
 				}
@@ -452,7 +461,7 @@ artdaq::FragmentPtr artdaq::hdf5::HighFiveGroupedDataset::readFragment_(HighFive
 	memcpy(frag->headerAddress(), &fragHdr, sizeof(fragHdr));
 
 	TLOG(TLVL_READFRAGMENT_V) << "readFragment_: Reading payload data into Fragment BEGIN";
-	dataset.read(frag->headerAddress() + frag->headerSizeWords());
+	dataset.read(frag->headerAddress() + frag->headerSizeWords()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	TLOG(TLVL_READFRAGMENT_V) << "readFragment_: Reading payload data into Fragment END";
 
 	TLOG(TLVL_TRACE) << "readFragment_ END";

@@ -6,7 +6,7 @@
 
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 
-#include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
+#include <artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp>
 #include "artdaq-demo-hdf5/HDF5/highFive/highFiveDatasetHelper.hh"
 
 #include <unordered_map>
@@ -68,6 +68,11 @@ public:
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const&) override;
 
 private:
+	HighFiveNtupleDataset(HighFiveNtupleDataset const&) = delete;
+	HighFiveNtupleDataset(HighFiveNtupleDataset&&) = delete;
+	HighFiveNtupleDataset& operator=(HighFiveNtupleDataset const&) = delete;
+	HighFiveNtupleDataset& operator=(HighFiveNtupleDataset&&) = delete;
+
 	std::unique_ptr<HighFive::File> file_;
 	size_t headerIndex_;
 	size_t fragmentIndex_;

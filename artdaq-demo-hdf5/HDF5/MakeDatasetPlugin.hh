@@ -18,7 +18,7 @@ namespace hdf5 {
 	 */
 std::unique_ptr<FragmentDataset>
 MakeDatasetPlugin(const fhicl::ParameterSet& pset,
-                  std::string plugin_label);
+                  const std::string& plugin_label);
 }  // namespace hdf5
 }  // namespace artdaq
 

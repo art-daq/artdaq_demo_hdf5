@@ -36,7 +36,7 @@ public:
 	 *
 	 * FragmentDataset takes no Parameters.
 	 */
-	FragmentDataset(fhicl::ParameterSet const& ps, std::string mode);
+	FragmentDataset(fhicl::ParameterSet const& ps, const std::string& mode);
 	/**
 	 * @brief FragmentDataset default virtual destructor
 	 */
@@ -56,7 +56,7 @@ public:
 	 */
 	virtual void insertMany(Fragments const& fs, std::string instance_name = "")
 	{
-		for (auto f : fs) insertOne(f, instance_name);
+		for (auto const& f : fs) insertOne(f, instance_name);
 	}
 	/**
 	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)
@@ -83,6 +83,11 @@ public:
 
 protected:
 	FragmentDatasetMode mode_;  ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
+private:
+	FragmentDataset(FragmentDataset const&) = delete;
+	FragmentDataset(FragmentDataset&&) = delete;
+	FragmentDataset& operator=(FragmentDataset const&) = delete;
+	FragmentDataset& operator=(FragmentDataset&&) = delete;
 };
 
 }  // namespace hdf5

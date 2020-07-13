@@ -10,7 +10,7 @@ namespace artdaq {
 namespace hdf5 {
 std::unique_ptr<artdaq::hdf5::FragmentDataset>
 MakeDatasetPlugin(const fhicl::ParameterSet& pset,
-                  std::string plugin_label)
+                  const std::string& plugin_label)
 {
 	static cet::BasicPluginFactory bpf("dataset", "make");
 
