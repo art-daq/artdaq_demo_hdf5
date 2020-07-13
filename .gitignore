@@ -6,7 +6,7 @@ tools/fcl/ToySimulator.fcl
 tools/fcl/V172xSimulator.fcl
 tools/fcl/WFViewer.fcl
 tools/fcl/TransferInputShmem2.fcl
-
+artdaq-demo-hdf5/HDF5/highFive/HighFive/
 Aggregator_*.fcl
 BoardReader_*.fcl
 EventBuilder_*.fcl
