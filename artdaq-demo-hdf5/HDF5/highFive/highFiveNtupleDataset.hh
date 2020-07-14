@@ -44,7 +44,7 @@ public:
 	 *
 	 * This FragmentDataset plugin uses the "Ntuple" file format, where each Fragment is represented by one or more rows in the Fragments Ntuple Group.
 	 */
-	void insertOne(Fragment const& frag, std::string instance_name) override;
+	void insertOne(Fragment const& frag) override;
 
 	/**
 	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)

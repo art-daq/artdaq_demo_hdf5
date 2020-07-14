@@ -5,6 +5,7 @@
 #include "artdaq-core/Data/RawEvent.hh"
 #include "cetlib/compiler_macros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "artdaq-core/Data/FragmentNameHelper.hh"
 
 #include <unordered_map>
 
@@ -48,15 +49,15 @@ public:
 	 *
 	 * This function is pure virtual.
 	 */
-	virtual void insertOne(Fragment const& f, std::string instance_name = "") = 0;
+	virtual void insertOne(Fragment const& f) = 0;
 	/**
 	 * @brief Insert several Fragments into the Dataset (write them to the HDF5 file)
 	 * @param fs Fragments to insert
 	 * @param instance_name String name to identify Fragments
 	 */
-	virtual void insertMany(Fragments const& fs, std::string instance_name = "")
+	virtual void insertMany(Fragments const& fs)
 	{
-		for (auto const& f : fs) insertOne(f, instance_name);
+		for (auto const& f : fs) insertOne(f);
 	}
 	/**
 	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)
@@ -83,6 +84,8 @@ public:
 
 protected:
 	FragmentDatasetMode mode_;  ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
+	std::shared_ptr<artdaq::FragmentNameHelper> nameHelper_;
+
 private:
 	FragmentDataset(FragmentDataset const&) = delete;
 	FragmentDataset(FragmentDataset&&) = delete;

@@ -117,8 +117,6 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	auto hdr_found = false;
 	auto sequence_id = artdaq::Fragment::InvalidSequenceID;
 
-	art::ServiceHandle<ArtdaqFragmentNamingServiceInterface> namingService;
-
 	TLOG(5) << "write: Retrieving event Fragments";
 	{
 		auto result_handles = std::vector<art::GroupQueryResult>();
@@ -145,10 +143,8 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 				TLOG(10) << "raw_event_handle labels: processName:" << raw_event_handle.provenance()->processName();
 				sequence_id = (*raw_event_handle).front().sequenceID();
 
-				auto instance_name = namingService->GetInstanceNameForFragment((*raw_event_handle).front());
-
 				TLOG(5) << "write: Writing to dataset";
-				ntuple_->insertMany(*raw_event_handle, instance_name.second);
+				ntuple_->insertMany(*raw_event_handle);
 			}
 		}
 	}

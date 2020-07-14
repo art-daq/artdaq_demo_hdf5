@@ -81,7 +81,7 @@ artdaq::hdf5::HighFiveNtupleDataset::~HighFiveNtupleDataset() noexcept
 	//	file_->flush();
 }
 
-void artdaq::hdf5::HighFiveNtupleDataset::insertOne(artdaq::Fragment const& frag, std::string /*instance_name*/)
+void artdaq::hdf5::HighFiveNtupleDataset::insertOne(artdaq::Fragment const& frag)
 {
 	TLOG(TLVL_TRACE) << "insertOne BEGIN";
 	auto fragSize = frag.size();

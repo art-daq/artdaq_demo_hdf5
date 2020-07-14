@@ -11,12 +11,9 @@
 #define TLVL_GETEVENTHEADER 14
 
 #include <unordered_map>
-#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
-#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
-#include "canvas/Persistency/Provenance/EventID.h"
 #include "artdaq-core/Utilities/TimeUtils.hh"
 
 namespace artdaq {
@@ -36,7 +33,6 @@ public:
 private:
 	std::unique_ptr<HighFive::File> file_;
 	size_t eventIndex_;
-	art::ServiceHandle<ArtdaqFragmentNamingServiceInterface> namingService_;
 	HighFive::DataSetCreateProps fragmentCProps_;
 	HighFive::DataSetAccessProps fragmentAProps_;
 
@@ -97,7 +93,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
 			auto fragPtr = cf.at(0);
-			auto typeName = namingService_->GetInstanceNameForFragment(*fragPtr).second;
+			auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
 			if (!eventGroup.exist(typeName))
 			{
 				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -142,7 +138,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
 			auto fragPtr = cf.at(0);
-			auto typeName = namingService_->GetInstanceNameForFragment(*fragPtr).second;
+			auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
 			if (!eventGroup.exist(typeName))
 			{
 				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -164,7 +160,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 		else
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Writing Empty Container Fragment as standard Fragment";
-			auto typeName = namingService_->GetInstanceNameForFragment(frag).second;
+			auto typeName = nameHelper_->GetInstanceNameForFragment(frag).second;
 			if (!eventGroup.exist(typeName))
 			{
 				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -193,7 +189,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
                 {
 
 		TLOG(TLVL_INSERTONE) << "insertOne: Writing non-Container Fragment";
-		auto typeName = namingService_->GetInstanceNameForFragment(frag).second;
+		auto typeName = nameHelper_->GetInstanceNameForFragment(frag).second;
 		if (!eventGroup.exist(typeName))
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -346,12 +342,14 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGeoCmpltPD
 	auto seqIDGroup = file_->getGroup(std::to_string(seqID));
 
 	uint32_t runID, subrunID, eventID;
+	uint64_t timestamp;
 	seqIDGroup.getAttribute("run_id").read(runID);
 	seqIDGroup.getAttribute("subrun_id").read(subrunID);
 	seqIDGroup.getAttribute("event_id").read(eventID);
+	seqIDGroup.getAttribute("timestamp").read(timestamp);
 
-	TLOG(TLVL_GETEVENTHEADER) << "Creating EventHeader with runID " << runID << ", subrunID " << subrunID << ", eventID " << eventID << " (seqID " << seqID << ")";
-	artdaq::detail::RawEventHeader hdr(runID, subrunID, eventID, seqID);
+	TLOG(TLVL_GETEVENTHEADER) << "Creating EventHeader with runID " << runID << ", subrunID " << subrunID << ", eventID " << eventID << ", timestamp " << timestamp << " (seqID " << seqID << ")";
+	artdaq::detail::RawEventHeader hdr(runID, subrunID, eventID, seqID, timestamp);
 	seqIDGroup.getAttribute("is_complete").read(hdr.is_complete);
 
 	TLOG(TLVL_TRACE) << "GetEventHeader END";

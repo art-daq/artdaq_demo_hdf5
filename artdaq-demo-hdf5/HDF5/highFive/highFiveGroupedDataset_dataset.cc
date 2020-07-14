@@ -49,12 +49,12 @@ public:
 	 * Each Fragment will be written as an HDF5 Dataset, unless it is a Container type, in which case it will be written as an HDF5 Group, with each contained Fragment as a Dataset within that Group.
 	 * Fragments are written as metadata and payload, with the Fragment header fields represented as Dataset attributes.
 	 */
-	void insertOne(artdaq::Fragment const& frag, std::string instance_name) override;
+	void insertOne(artdaq::Fragment const& frag) override;
 	/**
 	 * @brief Insert several Fragments into the Dataset (write them to the HDF5 file)
 	 * @param frags Fragments to insert
 	 */
-	void insertMany(artdaq::Fragments const& frags, std::string instance_name) override;
+	void insertMany(artdaq::Fragments const& frags) override;
 	/**
 	 * @brief Insert a RawEventHeader into the Dataset (write it to the HDF5 file)
 	 * @param hdr RawEventHeader to insert
@@ -82,32 +82,17 @@ private:
 
 	std::unique_ptr<HighFive::File> file_;
 	size_t eventIndex_;
-	std::unordered_map<artdaq::Fragment::type_t, std::string> fragment_type_names_;
-	std::string default_fragment_type_name_;
 	HighFive::DataSetCreateProps fragmentCProps_;
 	HighFive::DataSetAccessProps fragmentAProps_;
 
 	void writeFragment_(HighFive::Group& group, artdaq::Fragment const& frag);
 	artdaq::FragmentPtr readFragment_(HighFive::DataSet const& dataset);
-
-	std::string GetNameForFragment(artdaq::Fragment const& frag, std::string instance_name) const {
-		if (instance_name == "")
-		{
-			if (fragment_type_names_.count(frag.type())) { return fragment_type_names_.at(frag.type()); }
-			return default_fragment_type_name_;
-		}
-		else
-		{
-			return instance_name;
-		}
-	}
-
 };
 }  // namespace hdf5
 }  // namespace artdaq
 
 artdaq::hdf5::HighFiveGroupedDataset::HighFiveGroupedDataset(fhicl::ParameterSet const& ps)
-    : FragmentDataset(ps, ps.get<std::string>("mode", "write")), file_(nullptr), eventIndex_(0),fragment_type_names_(), default_fragment_type_name_(ps.get<std::string>("default_fragment_type_name", "unidentified"))
+    : FragmentDataset(ps, ps.get<std::string>("mode", "write")), file_(nullptr), eventIndex_(0)
 {
 	TLOG(TLVL_DEBUG) << "HighFiveGroupedDataset CONSTRUCTOR BEGIN";
 	if (mode_ == FragmentDatasetMode::Read)
@@ -119,13 +104,6 @@ artdaq::hdf5::HighFiveGroupedDataset::HighFiveGroupedDataset(fhicl::ParameterSet
 		file_ = std::make_unique<HighFive::File>(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate);
 	}
 
-	auto extraTypes = ps.get<std::vector<std::pair<artdaq::Fragment::type_t, std::string>>>("fragment_type_names", std::vector<std::pair<artdaq::Fragment::type_t, std::string>>());
-	for (auto it = extraTypes.begin(); it != extraTypes.end(); ++it)
-	{
-		fragment_type_names_[it->first] = it->second;
-	}
-
-
 	TLOG(TLVL_DEBUG) << "HighFiveGroupedDataset CONSTRUCTOR END";
 }
 
@@ -135,7 +113,7 @@ artdaq::hdf5::HighFiveGroupedDataset::~HighFiveGroupedDataset() noexcept
 	//	file_->flush();
 }
 
-void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& frag, std::string instance_name)
+void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& frag)
 {
 	TLOG(TLVL_TRACE) << "insertOne BEGIN";
 	if (!file_->exist(std::to_string(frag.sequenceID())))
@@ -153,8 +131,8 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
 			auto fragPtr = cf.at(0);
-			auto typeName = GetNameForFragment(*fragPtr, instance_name);
-			
+			auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
+
 			if (!eventGroup.exist(typeName))
 			{
 				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -188,7 +166,7 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 		else
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Writing Empty Container Fragment as standard Fragment";
-			auto typeName = GetNameForFragment(frag, instance_name);
+			auto typeName = nameHelper_->GetInstanceNameForFragment(frag).second;
 			if (!eventGroup.exist(typeName))
 			{
 				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -202,7 +180,7 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 	else
 	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Writing non-Container Fragment";
-		auto typeName = GetNameForFragment(frag, instance_name);
+		auto typeName = nameHelper_->GetInstanceNameForFragment(frag).second;
 		if (!eventGroup.exist(typeName))
 		{
 			TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
@@ -215,10 +193,10 @@ void artdaq::hdf5::HighFiveGroupedDataset::insertOne(artdaq::Fragment const& fra
 	TLOG(TLVL_TRACE) << "insertOne END";
 }
 
-void artdaq::hdf5::HighFiveGroupedDataset::insertMany(artdaq::Fragments const& fs, std::string instance_name)
+void artdaq::hdf5::HighFiveGroupedDataset::insertMany(artdaq::Fragments const& fs)
 {
 	TLOG(TLVL_TRACE) << "insertMany BEGIN";
-	for (auto& f : fs) insertOne(f, instance_name);
+	for (auto& f : fs) insertOne(f);
 	TLOG(TLVL_TRACE) << "insertMany END";
 }
 
@@ -461,7 +439,7 @@ artdaq::FragmentPtr artdaq::hdf5::HighFiveGroupedDataset::readFragment_(HighFive
 	memcpy(frag->headerAddress(), &fragHdr, sizeof(fragHdr));
 
 	TLOG(TLVL_READFRAGMENT_V) << "readFragment_: Reading payload data into Fragment BEGIN";
-	dataset.read(frag->headerAddress() + frag->headerSizeWords()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	dataset.read(frag->headerAddress() + frag->headerSizeWords());  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	TLOG(TLVL_READFRAGMENT_V) << "readFragment_: Reading payload data into Fragment END";
 
 	TLOG(TLVL_TRACE) << "readFragment_ END";
