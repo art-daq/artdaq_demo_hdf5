@@ -1,6 +1,6 @@
 services: {
 ArtdaqFragmentNamingServiceInterface: { 
- service_provider: ArtdaqDemoFragmentNamingService
+ service_provider: ArtdaqFragmentNamingService helper_plugin: "ArtdaqDemo"
 # service_provider: ArtdaqFragmentNamingService
 # fragment_type_map: [[1, "MISSED"], [2, "TPC"], [3, "PHOTON"], [4, "TRIGGER"], [5, "TIMING"], [6, "TOY1"], [7, "TOY2"], [8, "FELIX"], [9, "CRT"], [10, "CTB"], [11, "CPUHITS"], [12, "DEVBOARDHITS"], [13, "UNKNOWN"]]
 }
