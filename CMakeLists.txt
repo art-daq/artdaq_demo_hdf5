@@ -70,7 +70,13 @@ find_ups_boost( v1_50_0 filesystem
                         unit_test_framework
  )
  find_ups_product( hdf5 v1_10_3)
+
+ 
+if( ${BTYPE_UC} MATCHES "DEBUG" )
+set(HDF5_C_LIBRARIES $ENV{HDF5_LIB}/libhdf5_hl_debug.so $ENV{HDF5_LIB}/libhdf5_debug.so)
+else()
 set(HDF5_C_LIBRARIES $ENV{HDF5_LIB}/libhdf5_hl.so $ENV{HDF5_LIB}/libhdf5.so)
+endif()
 
 string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
 list(GET ART_VERSION_LIST 0 ART_MAJOR_VERSION)
