@@ -2,10 +2,10 @@
 #define artdaq_demo_hdf5_hdf5_FragmentDataset_hh 1
 
 #include "artdaq-core/Data/Fragment.hh"
+#include "artdaq-core/Data/FragmentNameHelper.hh"
 #include "artdaq-core/Data/RawEvent.hh"
 #include "cetlib/compiler_macros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "artdaq-core/Data/FragmentNameHelper.hh"
 
 #include <unordered_map>
 

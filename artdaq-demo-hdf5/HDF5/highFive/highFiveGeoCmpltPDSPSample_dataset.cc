@@ -12,9 +12,9 @@
 
 #include <unordered_map>
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
+#include "artdaq-core/Utilities/TimeUtils.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
-#include "artdaq-core/Utilities/TimeUtils.hh"
 
 namespace artdaq {
 namespace hdf5 {
@@ -73,7 +73,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 	}
 	auto eventGroup = file_->getGroup(std::to_string(frag.sequenceID()));
 
-        // fragment_type_map: [[1, "MISSED"], [2, "TPC"], [3, "PHOTON"], [4, "TRIGGER"], [5, "TIMING"], [6, "TOY1"], [7, "TOY2"], [8, "FELIX"], [9, "CRT"], [10, "CTB"], [11, "CPUHITS"], [12, "DEVBOARDHITS"], [13, "UNKNOWN"]]
+	// fragment_type_map: [[1, "MISSED"], [2, "TPC"], [3, "PHOTON"], [4, "TRIGGER"], [5, "TIMING"], [6, "TOY1"], [7, "TOY2"], [8, "FELIX"], [9, "CRT"], [10, "CTB"], [11, "CPUHITS"], [12, "DEVBOARDHITS"], [13, "UNKNOWN"]]
 
 	if (frag.type() == Fragment::ContainerFragmentType)
 	{
@@ -92,15 +92,15 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 
 			TLOG(TLVL_INSERTONE) << "insertOne: Creating group and setting attributes";
 			auto typeGroup = eventGroup.getGroup(typeName);
-                        std::string containerName = "Container0";
+			std::string containerName = "Container0";
 
-                        int counter = 1;
-                        while (typeGroup.exist(containerName))
-                        {
-                          //TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
-                          containerName = "Container" + std::to_string(counter);
-                          counter++;
-                        }
+			int counter = 1;
+			while (typeGroup.exist(containerName))
+			{
+				//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+				containerName = "Container" + std::to_string(counter);
+				counter++;
+			}
 
 			auto containerGroup = typeGroup.createGroup(containerName);
 			containerGroup.createAttribute("version", frag.version());
@@ -163,10 +163,10 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 #endif
 	}
 	else if (frag.type() == 5)  // Timing
-        {
+	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Writing Timing Fragment";
 		writeFragment_(eventGroup, frag);
-        }
+	}
 	else
 	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Writing non-Container Fragment";
@@ -339,81 +339,85 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 {
 	TLOG(TLVL_TRACE) << "writeFragment_ BEGIN";
 
-        std::string datasetNameBase = "TimeSlice";
-        std::string datasetName = "TimeSlice0";
+	std::string datasetNameBase = "TimeSlice";
+	std::string datasetName = "TimeSlice0";
 
-        switch (frag.type())
-          {
-          case 2:  // TPC
-            datasetNameBase = "APA3." + std::to_string( (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            break;
-          case 3:  // Photon
-            datasetNameBase = "APA" + std::to_string( (int) (frag.fragmentID() / 10) ) + "." + std::to_string( -1 + (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            break;
-          case 5:  // Timing
-            datasetNameBase = "Timing";
-            datasetName = datasetNameBase;
-            break;
-          case 8:  // FELIX
-            int apaNumber = ((int) (frag.fragmentID() / 10)) % 10;
-            if (apaNumber == 3) {apaNumber = 2;}
-            datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string( (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            //TLOG(TLVL_DEBUG) << "Skipping Dataset: " << datasetName << ", fragment size=" << frag.size();
+	switch (frag.type())
+	{
+		case 2:  // TPC
+			datasetNameBase = "APA3." + std::to_string((int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			break;
+		case 3:  // Photon
+			datasetNameBase = "APA" + std::to_string((int)(frag.fragmentID() / 10)) + "." + std::to_string(-1 + (int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			break;
+		case 5:  // Timing
+			datasetNameBase = "Timing";
+			datasetName = datasetNameBase;
+			break;
+		case 8:  // FELIX
+			int apaNumber = ((int)(frag.fragmentID() / 10)) % 10;
+			if (apaNumber == 3) { apaNumber = 2; }
+			datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string((int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			//TLOG(TLVL_DEBUG) << "Skipping Dataset: " << datasetName << ", fragment size=" << frag.size();
 
-            const uint8_t* tmpBeginPtr = frag.dataBeginBytes();
-            const uint8_t* tmpEndPtr = frag.dataEndBytes();
-            const uint64_t* beginPtr = reinterpret_cast<const uint64_t*>(tmpBeginPtr);
-            const uint64_t* endPtr = reinterpret_cast<const uint64_t*>(tmpEndPtr);
-            TLOG(TLVL_DEBUG) << "Data addresses in hex: " << std::hex << tmpBeginPtr << ", " << tmpEndPtr << ", " << beginPtr << ", " << endPtr << std::dec;
+			const uint8_t* tmpBeginPtr = frag.dataBeginBytes();
+			const uint8_t* tmpEndPtr = frag.dataEndBytes();
+			const uint64_t* beginPtr = reinterpret_cast<const uint64_t*>(tmpBeginPtr);
+			const uint64_t* endPtr = reinterpret_cast<const uint64_t*>(tmpEndPtr);
+			TLOG(TLVL_DEBUG) << "Data addresses in hex: " << std::hex << tmpBeginPtr << ", " << tmpEndPtr << ", " << beginPtr << ", " << endPtr << std::dec;
 
-            uint64_t* mdPtr = reinterpret_cast<uint64_t*>(const_cast<uint8_t*>(frag.headerBeginBytes()) + frag.headerSizeBytes());
-            TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
-            ++mdPtr;
-            TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
+			uint64_t* mdPtr = reinterpret_cast<uint64_t*>(const_cast<uint8_t*>(frag.headerBeginBytes()) + frag.headerSizeBytes());
+			TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
+			++mdPtr;
+			TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
 
-            if (frag.size() == 349397) {
-              uint64_t* dataPtr = const_cast<uint64_t*>(beginPtr);
-              ++dataPtr;
-              for (int idx = 0; idx < 20; ++idx) {
-                TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
+			if (frag.size() == 349397)
+			{
+				uint64_t* dataPtr = const_cast<uint64_t*>(beginPtr);
+				++dataPtr;
+				for (int idx = 0; idx < 20; ++idx)
+				{
+					TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
 
-                double duneTime = (*dataPtr) * 0.000000020;
-                timespec tsp;
-                tsp.tv_sec = (time_t) duneTime;
-                tsp.tv_nsec = (long) ((duneTime - tsp.tv_sec) * 1000000000.0);
-                std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
-                TLOG(TLVL_DEBUG) << "Frame time is " << timeString;
+					double duneTime = (*dataPtr) * 0.000000020;
+					timespec tsp;
+					tsp.tv_sec = (time_t)duneTime;
+					tsp.tv_nsec = (long)((duneTime - tsp.tv_sec) * 1000000000.0);
+					std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
+					TLOG(TLVL_DEBUG) << "Frame time is " << timeString;
 
-                dataPtr += 58;
-              }
-              dataPtr += 347072;
-              while (dataPtr <= endPtr) {
-                TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
+					dataPtr += 58;
+				}
+				dataPtr += 347072;
+				while (dataPtr <= endPtr)
+				{
+					TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
 
-                double duneTime = (*dataPtr) * 0.000000020;
-                timespec tsp;
-                tsp.tv_sec = (time_t) duneTime;
-                tsp.tv_nsec = (long) ((duneTime - tsp.tv_sec) * 1000000000.0);
-                std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
-                TLOG(TLVL_DEBUG) << "Frame time is " << timeString;
+					double duneTime = (*dataPtr) * 0.000000020;
+					timespec tsp;
+					tsp.tv_sec = (time_t)duneTime;
+					tsp.tv_nsec = (long)((duneTime - tsp.tv_sec) * 1000000000.0);
+					std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
+					TLOG(TLVL_DEBUG) << "Frame time is " << timeString;
 
-                dataPtr += 58;
-              }
-            }
-            else {
-              TLOG(TLVL_DEBUG) << "Skipping Dataset: " << datasetName << ", fragment size=" << frag.size();
-            }
+					dataPtr += 58;
+				}
+			}
+			else
+			{
+				TLOG(TLVL_DEBUG) << "Skipping Dataset: " << datasetName << ", fragment size=" << frag.size();
+			}
 
-            break;
-          }
+			break;
+	}
 
 	int counter = 1;
 	while (group.exist(datasetName))
 	{
-          //TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+		//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
 		datasetName = datasetNameBase + std::to_string(counter);
 		counter++;
 	}
@@ -440,12 +444,12 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 	//fragDset.createAttribute("atime_ns", fragHdr.atime_ns);
 	//fragDset.createAttribute("atime_s", fragHdr.atime_s);
 
-        double duneTime = fragHdr.timestamp * 0.000000020;
-        timespec tsp;
-        tsp.tv_sec = (time_t) duneTime;
-        tsp.tv_nsec = (long) ((duneTime - tsp.tv_sec) * 1000000000.0);
-        std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
-        TLOG(TLVL_DEBUG) << "Trigger time is " << timeString << " for Dataset: " << datasetName;
+	double duneTime = fragHdr.timestamp * 0.000000020;
+	timespec tsp;
+	tsp.tv_sec = (time_t)duneTime;
+	tsp.tv_nsec = (long)((duneTime - tsp.tv_sec) * 1000000000.0);
+	std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
+	TLOG(TLVL_DEBUG) << "Trigger time is " << timeString << " for Dataset: " << datasetName;
 	fragDset.createAttribute("time_string", timeString);
 
 	TLOG(TLVL_WRITEFRAGMENT_V) << "writeFragment_: Writing Fragment payload START";

@@ -12,9 +12,9 @@
 
 #include <unordered_map>
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
+#include "artdaq-core/Utilities/TimeUtils.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
-#include "artdaq-core/Utilities/TimeUtils.hh"
 
 namespace artdaq {
 namespace hdf5 {
@@ -59,8 +59,8 @@ artdaq::hdf5::HighFiveGeoCmpltPDSPSample::HighFiveGeoCmpltPDSPSample(fhicl::Para
 		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate));
 	}
 
-        typesOfInterest = ps.get<std::array<int, 4> >("fragmentTypesOfInterest");
-        apaOfInterest = ps.get<int>("apaOfInterest");
+	typesOfInterest = ps.get<std::array<int, 4>>("fragmentTypesOfInterest");
+	apaOfInterest = ps.get<int>("apaOfInterest");
 
 	TLOG(TLVL_DEBUG) << "HighFiveGeoCmpltPDSPSample CONSTRUCTOR END";
 }
@@ -86,76 +86,75 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 		TLOG(TLVL_INSERTONE) << "insertOne: Processing ContainerFragment";
 		ContainerFragment cf(frag);
 
-                if (typeOfInterest(cf.fragment_type()))
-                {
-
-		if (cf.fragment_type() != 10 && (cf.block_count() > 1 || cf.fragment_type() == 9))
+		if (typeOfInterest(cf.fragment_type()))
 		{
-			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
-			auto fragPtr = cf.at(0);
-			auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
-			if (!eventGroup.exist(typeName))
+			if (cf.fragment_type() != 10 && (cf.block_count() > 1 || cf.fragment_type() == 9))
 			{
-				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
-				eventGroup.createGroup(typeName);
-			}
-
-			TLOG(TLVL_INSERTONE) << "insertOne: Creating group and setting attributes";
-			auto typeGroup = eventGroup.getGroup(typeName);
-                        std::string containerName = "Container0";
-
-                        int counter = 1;
-                        while (typeGroup.exist(containerName))
-                        {
-                          //TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
-                          containerName = "Container" + std::to_string(counter);
-                          counter++;
-                        }
-
-			auto containerGroup = typeGroup.createGroup(containerName);
-			containerGroup.createAttribute("version", frag.version());
-			containerGroup.createAttribute("type", frag.type());
-			containerGroup.createAttribute("sequence_id", frag.sequenceID());
-			containerGroup.createAttribute("fragment_id", frag.fragmentID());
-			containerGroup.createAttribute("timestamp", frag.timestamp());
-
-			containerGroup.createAttribute("container_block_count", cf.block_count());
-			containerGroup.createAttribute("container_fragment_type", cf.fragment_type());
-			containerGroup.createAttribute("container_version", cf.metadata()->version);
-			containerGroup.createAttribute("container_missing_data", cf.missing_data());
-
-			TLOG(TLVL_INSERTONE) << "insertOne: Writing Container contained Fragments";
-			for (size_t ii = 0; ii < cf.block_count(); ++ii)
-			{
-				if (ii != 0)
+				TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
+				auto fragPtr = cf.at(0);
+				auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
+				if (!eventGroup.exist(typeName))
 				{
-					fragPtr = cf.at(ii);
+					TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
+					eventGroup.createGroup(typeName);
 				}
-				writeFragment_(containerGroup, *fragPtr);
-			}
-		}
-		else if (cf.block_count() == 1 || cf.fragment_type() == 10)
-		{
-			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
-			auto fragPtr = cf.at(0);
-			auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
-			if (!eventGroup.exist(typeName))
-			{
-				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
-				eventGroup.createGroup(typeName);
-			}
 
-			TLOG(TLVL_INSERTONE) << "insertOne: Creating type group";
-			auto typeGroup = eventGroup.getGroup(typeName);
-			for (size_t ii = 0; ii < cf.block_count(); ++ii)
-			{
-				if (ii != 0)
+				TLOG(TLVL_INSERTONE) << "insertOne: Creating group and setting attributes";
+				auto typeGroup = eventGroup.getGroup(typeName);
+				std::string containerName = "Container0";
+
+				int counter = 1;
+				while (typeGroup.exist(containerName))
 				{
-					fragPtr = cf.at(ii);
+					//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+					containerName = "Container" + std::to_string(counter);
+					counter++;
 				}
-				writeFragment_(typeGroup, *fragPtr);
+
+				auto containerGroup = typeGroup.createGroup(containerName);
+				containerGroup.createAttribute("version", frag.version());
+				containerGroup.createAttribute("type", frag.type());
+				containerGroup.createAttribute("sequence_id", frag.sequenceID());
+				containerGroup.createAttribute("fragment_id", frag.fragmentID());
+				containerGroup.createAttribute("timestamp", frag.timestamp());
+
+				containerGroup.createAttribute("container_block_count", cf.block_count());
+				containerGroup.createAttribute("container_fragment_type", cf.fragment_type());
+				containerGroup.createAttribute("container_version", cf.metadata()->version);
+				containerGroup.createAttribute("container_missing_data", cf.missing_data());
+
+				TLOG(TLVL_INSERTONE) << "insertOne: Writing Container contained Fragments";
+				for (size_t ii = 0; ii < cf.block_count(); ++ii)
+				{
+					if (ii != 0)
+					{
+						fragPtr = cf.at(ii);
+					}
+					writeFragment_(containerGroup, *fragPtr);
+				}
 			}
-		}
+			else if (cf.block_count() == 1 || cf.fragment_type() == 10)
+			{
+				TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
+				auto fragPtr = cf.at(0);
+				auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
+				if (!eventGroup.exist(typeName))
+				{
+					TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
+					eventGroup.createGroup(typeName);
+				}
+
+				TLOG(TLVL_INSERTONE) << "insertOne: Creating type group";
+				auto typeGroup = eventGroup.getGroup(typeName);
+				for (size_t ii = 0; ii < cf.block_count(); ++ii)
+				{
+					if (ii != 0)
+					{
+						fragPtr = cf.at(ii);
+					}
+					writeFragment_(typeGroup, *fragPtr);
+				}
+			}
 #if 0
 		else
 		{
@@ -171,35 +170,31 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 			writeFragment_(typeGroup, frag);
 		}
 #endif
-                }
+		}
 	}
 	else if (frag.type() == 5)  // Timing
-        {
-                if (typeOfInterest(frag.type()))
-                {
-
-		TLOG(TLVL_INSERTONE) << "insertOne: Writing Timing Fragment";
-		writeFragment_(eventGroup, frag);
-
-                }
-        }
+	{
+		if (typeOfInterest(frag.type()))
+		{
+			TLOG(TLVL_INSERTONE) << "insertOne: Writing Timing Fragment";
+			writeFragment_(eventGroup, frag);
+		}
+	}
 	else
 	{
-                if (typeOfInterest(frag.type()))
-                {
-
-		TLOG(TLVL_INSERTONE) << "insertOne: Writing non-Container Fragment";
-		auto typeName = nameHelper_->GetInstanceNameForFragment(frag).second;
-		if (!eventGroup.exist(typeName))
+		if (typeOfInterest(frag.type()))
 		{
-			TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
-			eventGroup.createGroup(typeName);
+			TLOG(TLVL_INSERTONE) << "insertOne: Writing non-Container Fragment";
+			auto typeName = nameHelper_->GetInstanceNameForFragment(frag).second;
+			if (!eventGroup.exist(typeName))
+			{
+				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
+				eventGroup.createGroup(typeName);
+			}
+			auto typeGroup = eventGroup.getGroup(typeName);
+
+			writeFragment_(typeGroup, frag);
 		}
-		auto typeGroup = eventGroup.getGroup(typeName);
-
-		writeFragment_(typeGroup, frag);
-
-                }
 	}
 	TLOG(TLVL_TRACE) << "insertOne END";
 }
@@ -360,40 +355,40 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 {
 	TLOG(TLVL_TRACE) << "writeFragment_ BEGIN";
 
-        std::string datasetNameBase = "TimeSlice";
-        std::string datasetName = "TimeSlice0";
-        int apaNumber = -1;
+	std::string datasetNameBase = "TimeSlice";
+	std::string datasetName = "TimeSlice0";
+	int apaNumber = -1;
 
-        switch (frag.type())
-          {
-          case 2:  // TPC
-            apaNumber = 3;
-            datasetNameBase = "APA3." + std::to_string( (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            break;
-          case 3:  // Photon
-            apaNumber = (int) (frag.fragmentID() / 10);
-            datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string( -1 + (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            break;
-          case 5:  // Timing
-            datasetNameBase = "Timing";
-            datasetName = datasetNameBase;
-            break;
-          case 8:  // FELIX
-            apaNumber = ((int) (frag.fragmentID() / 10)) % 10;
-            if (apaNumber == 3) {apaNumber = 2;}
-            datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string( (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            break;
-          }
+	switch (frag.type())
+	{
+		case 2:  // TPC
+			apaNumber = 3;
+			datasetNameBase = "APA3." + std::to_string((int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			break;
+		case 3:  // Photon
+			apaNumber = (int)(frag.fragmentID() / 10);
+			datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string(-1 + (int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			break;
+		case 5:  // Timing
+			datasetNameBase = "Timing";
+			datasetName = datasetNameBase;
+			break;
+		case 8:  // FELIX
+			apaNumber = ((int)(frag.fragmentID() / 10)) % 10;
+			if (apaNumber == 3) { apaNumber = 2; }
+			datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string((int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			break;
+	}
 
-        if (apaNumber != apaOfInterest) {return;}
+	if (apaNumber != apaOfInterest) { return; }
 
 	int counter = 1;
 	while (group.exist(datasetName))
 	{
-          //TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+		//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
 		datasetName = datasetNameBase + std::to_string(counter);
 		counter++;
 	}
@@ -420,11 +415,11 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 	//fragDset.createAttribute("atime_ns", fragHdr.atime_ns);
 	//fragDset.createAttribute("atime_s", fragHdr.atime_s);
 
-        double duneTime = fragHdr.timestamp * 0.000000020;
-        timespec tsp;
-        tsp.tv_sec = (time_t) duneTime;
-        tsp.tv_nsec = (long) ((duneTime - tsp.tv_sec) * 1000000000.0);
-        std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
+	double duneTime = fragHdr.timestamp * 0.000000020;
+	timespec tsp;
+	tsp.tv_sec = (time_t)duneTime;
+	tsp.tv_nsec = (long)((duneTime - tsp.tv_sec) * 1000000000.0);
+	std::string timeString = artdaq::TimeUtils::convertUnixTimeToString(tsp);
 	fragDset.createAttribute("time_string", timeString);
 
 	TLOG(TLVL_WRITEFRAGMENT_V) << "writeFragment_: Writing Fragment payload START";
@@ -492,11 +487,11 @@ artdaq::FragmentPtr artdaq::hdf5::HighFiveGeoCmpltPDSPSample::readFragment_(High
 
 bool artdaq::hdf5::HighFiveGeoCmpltPDSPSample::typeOfInterest(artdaq::Fragment::type_t theType)
 {
-  for (unsigned int idx = 0; idx < typesOfInterest.size(); ++idx)
-    {
-      if (theType == typesOfInterest[idx]) {return true;}
-    }
-  return false;
+	for (unsigned int idx = 0; idx < typesOfInterest.size(); ++idx)
+	{
+		if (theType == typesOfInterest[idx]) { return true; }
+	}
+	return false;
 }
 
 DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::HighFiveGeoCmpltPDSPSample)
