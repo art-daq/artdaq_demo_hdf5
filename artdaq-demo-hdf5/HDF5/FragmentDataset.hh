@@ -45,7 +45,6 @@ public:
 	/**
 	 * @brief Insert a Fragment into the Dataset (write it to the HDF5 file)
 	 * @param f Fragment to insert
-	 * @param instance_name String name to identify Fragment
 	 *
 	 * This function is pure virtual.
 	 */
@@ -53,7 +52,6 @@ public:
 	/**
 	 * @brief Insert several Fragments into the Dataset (write them to the HDF5 file)
 	 * @param fs Fragments to insert
-	 * @param instance_name String name to identify Fragments
 	 */
 	virtual void insertMany(Fragments const& fs)
 	{
@@ -84,7 +82,7 @@ public:
 
 protected:
 	FragmentDatasetMode mode_;  ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
-	std::shared_ptr<artdaq::FragmentNameHelper> nameHelper_;
+	std::shared_ptr<artdaq::FragmentNameHelper> nameHelper_; ///< FragmentNameHelper used to translate between Fragment Type and string instance names
 
 private:
 	FragmentDataset(FragmentDataset const&) = delete;

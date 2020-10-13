@@ -1,5 +1,5 @@
 #include "tracemf.h"
-#define TRACE_NAME "HighFiveGeoCmpltPDSPSample"
+#define TRACE_NAME "HighFiveGeoSplitPDSPSample"
 #define TLVL_INSERTONE 6
 #define TLVL_INSERTHEADER 7
 #define TLVL_WRITEFRAGMENT 8
@@ -18,16 +18,47 @@
 
 namespace artdaq {
 namespace hdf5 {
-class HighFiveGeoCmpltPDSPSample : public FragmentDataset
+/**
+ * @brief Sample ProtoDUNE HDF5 writer that only writes certain Fragment types to output
+*/
+class HighFiveGeoSplitPDSPSample : public FragmentDataset
 {
 public:
-	HighFiveGeoCmpltPDSPSample(fhicl::ParameterSet const& ps);
-	virtual ~HighFiveGeoCmpltPDSPSample();
+	/**
+	 * @brief HighFiveGeoSplitPDSPSample Constructor
+	 * @param ps ParameterSet for HighFiveGeoSplitPDSPSample
+	*/
+	HighFiveGeoSplitPDSPSample(fhicl::ParameterSet const& ps);
+	/**
+	 * @brief HighFiveGeoSplitPDSPSample Destructor
+	*/
+	virtual ~HighFiveGeoSplitPDSPSample();
 
+	/**
+	 * @brief Write a Fragment to HDF5
+	 * @param frag Fragment to write
+	*/
 	void insertOne(artdaq::Fragment const& frag) override;
+	/**
+	 * @brief Write Fragments to HDF5
+	 * @param frags Fragments to write
+	*/
 	void insertMany(artdaq::Fragments const& frags) override;
+	/**
+	 * @brief Write a RawEventHeader to HDF5
+	 * @param hdr Header to write
+	*/
 	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
+	/**
+	 * @brief Read event data from HDF5
+	 * @return Fragment data organized by Fragment type
+	*/
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
+	/**
+	 * @brief Read an Event Header from HDF55
+	 * @param seqID Sequence ID to read
+	 * @return Pointer to RawEventHeader
+	*/
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
@@ -46,10 +77,10 @@ private:
 }  // namespace hdf5
 }  // namespace artdaq
 
-artdaq::hdf5::HighFiveGeoCmpltPDSPSample::HighFiveGeoCmpltPDSPSample(fhicl::ParameterSet const& ps)
+artdaq::hdf5::HighFiveGeoSplitPDSPSample::HighFiveGeoSplitPDSPSample(fhicl::ParameterSet const& ps)
     : FragmentDataset(ps, ps.get<std::string>("mode", "write")), file_(nullptr), eventIndex_(0)
 {
-	TLOG(TLVL_DEBUG) << "HighFiveGeoCmpltPDSPSample CONSTRUCTOR BEGIN";
+	TLOG(TLVL_DEBUG) << "HighFiveGeoSplitPDSPSample CONSTRUCTOR BEGIN";
 	if (mode_ == FragmentDatasetMode::Read)
 	{
 		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::ReadOnly));
@@ -62,16 +93,16 @@ artdaq::hdf5::HighFiveGeoCmpltPDSPSample::HighFiveGeoCmpltPDSPSample(fhicl::Para
 	typesOfInterest = ps.get<std::array<int, 4>>("fragmentTypesOfInterest");
 	apaOfInterest = ps.get<int>("apaOfInterest");
 
-	TLOG(TLVL_DEBUG) << "HighFiveGeoCmpltPDSPSample CONSTRUCTOR END";
+	TLOG(TLVL_DEBUG) << "HighFiveGeoSplitPDSPSample CONSTRUCTOR END";
 }
 
-artdaq::hdf5::HighFiveGeoCmpltPDSPSample::~HighFiveGeoCmpltPDSPSample()
+artdaq::hdf5::HighFiveGeoSplitPDSPSample::~HighFiveGeoSplitPDSPSample()
 {
-	TLOG(TLVL_DEBUG) << "~HighFiveGeoCmpltPDSPSample Begin/End ";
+	TLOG(TLVL_DEBUG) << "~HighFiveGeoSplitPDSPSample Begin/End ";
 	//	file_->flush();
 }
 
-void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const& frag)
+void artdaq::hdf5::HighFiveGeoSplitPDSPSample::insertOne(artdaq::Fragment const& frag)
 {
 	TLOG(TLVL_TRACE) << "insertOne BEGIN";
 	if (!file_->exist(std::to_string(frag.sequenceID())))
@@ -199,14 +230,14 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 	TLOG(TLVL_TRACE) << "insertOne END";
 }
 
-void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertMany(artdaq::Fragments const& fs)
+void artdaq::hdf5::HighFiveGeoSplitPDSPSample::insertMany(artdaq::Fragments const& fs)
 {
 	TLOG(TLVL_TRACE) << "insertMany BEGIN";
 	for (auto& f : fs) insertOne(f);
 	TLOG(TLVL_TRACE) << "insertMany END";
 }
 
-void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertHeader(artdaq::detail::RawEventHeader const& hdr)
+void artdaq::hdf5::HighFiveGeoSplitPDSPSample::insertHeader(artdaq::detail::RawEventHeader const& hdr)
 {
 	TLOG(TLVL_TRACE) << "insertHeader BEGIN";
 	if (!file_->exist(std::to_string(hdr.sequence_id)))
@@ -222,7 +253,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertHeader(artdaq::detail::RawE
 	TLOG(TLVL_TRACE) << "insertHeader END";
 }
 
-std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> artdaq::hdf5::HighFiveGeoCmpltPDSPSample::readNextEvent()
+std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> artdaq::hdf5::HighFiveGeoSplitPDSPSample::readNextEvent()
 {
 	TLOG(TLVL_DEBUG) << "readNextEvent BEGIN";
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> output;
@@ -326,7 +357,7 @@ std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>>
 	return output;
 }
 
-std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGeoCmpltPDSPSample::getEventHeader(artdaq::Fragment::sequence_id_t const& seqID)
+std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGeoSplitPDSPSample::getEventHeader(artdaq::Fragment::sequence_id_t const& seqID)
 {
 	TLOG(TLVL_TRACE) << "GetEventHeader BEGIN seqID=" << seqID;
 	if (!file_->exist(std::to_string(seqID)))
@@ -351,7 +382,7 @@ std::unique_ptr<artdaq::detail::RawEventHeader> artdaq::hdf5::HighFiveGeoCmpltPD
 	return std::make_unique<artdaq::detail::RawEventHeader>(hdr);
 }
 
-void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& group, artdaq::Fragment const& frag)
+void artdaq::hdf5::HighFiveGeoSplitPDSPSample::writeFragment_(HighFive::Group& group, artdaq::Fragment const& frag)
 {
 	TLOG(TLVL_TRACE) << "writeFragment_ BEGIN";
 
@@ -428,7 +459,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 	TLOG(TLVL_TRACE) << "writeFragment_ END";
 }
 
-artdaq::FragmentPtr artdaq::hdf5::HighFiveGeoCmpltPDSPSample::readFragment_(HighFive::DataSet const& dataset)
+artdaq::FragmentPtr artdaq::hdf5::HighFiveGeoSplitPDSPSample::readFragment_(HighFive::DataSet const& dataset)
 {
 	TLOG(TLVL_TRACE) << "readFragment_ BEGIN";
 	size_t fragSize;
@@ -485,7 +516,7 @@ artdaq::FragmentPtr artdaq::hdf5::HighFiveGeoCmpltPDSPSample::readFragment_(High
 
 // fragment_type_map: [[1, "MISSED"], [2, "TPC"], [3, "PHOTON"], [4, "TRIGGER"], [5, "TIMING"], [6, "TOY1"], [7, "TOY2"], [8, "FELIX"], [9, "CRT"], [10, "CTB"], [11, "CPUHITS"], [12, "DEVBOARDHITS"], [13, "UNKNOWN"]]
 
-bool artdaq::hdf5::HighFiveGeoCmpltPDSPSample::typeOfInterest(artdaq::Fragment::type_t theType)
+bool artdaq::hdf5::HighFiveGeoSplitPDSPSample::typeOfInterest(artdaq::Fragment::type_t theType)
 {
 	for (unsigned int idx = 0; idx < typesOfInterest.size(); ++idx)
 	{
@@ -494,4 +525,4 @@ bool artdaq::hdf5::HighFiveGeoCmpltPDSPSample::typeOfInterest(artdaq::Fragment::
 	return false;
 }
 
-DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::HighFiveGeoCmpltPDSPSample)
+DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::HighFiveGeoSplitPDSPSample)

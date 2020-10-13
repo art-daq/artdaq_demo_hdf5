@@ -18,16 +18,47 @@
 
 namespace artdaq {
 namespace hdf5 {
+/**
+ * @brief ProtoDUNE Sample HDF5 Module that writes events grouped by timestamp
+ */
 class HighFiveGeoCmpltPDSPSample : public FragmentDataset
 {
 public:
+	/**
+	 * @brief HighFiveGeoCmpltPDSPSample Constructor
+	 * @param ps ParameterSet for HighFiveGeoCmpltPDSPSample
+	*/
 	HighFiveGeoCmpltPDSPSample(fhicl::ParameterSet const& ps);
+	/**
+	 * @brief HighFiveGeoCmpltPDSPSample Destructor
+	*/
 	virtual ~HighFiveGeoCmpltPDSPSample();
 
+	/**
+	 * @brief Write a Fragment to HDF5
+	 * @param frag Fragment to write
+	*/
 	void insertOne(artdaq::Fragment const& frag) override;
+	/**
+	 * @brief Write Fragments to HDF5
+	 * @param frags Fragments to write
+	*/
 	void insertMany(artdaq::Fragments const& frags) override;
+	/**
+	 * @brief Write a RawEventHeader to HDF5
+	 * @param hdr Header to write
+	*/
 	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
+	/**
+	 * @brief Read event data from HDF5
+	 * @return Fragment data organized by Fragment type
+	*/
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
+	/**
+	 * @brief Read an Event Header from HDF55
+	 * @param seqID Sequence ID to read
+	 * @return Pointer to RawEventHeader
+	*/
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
