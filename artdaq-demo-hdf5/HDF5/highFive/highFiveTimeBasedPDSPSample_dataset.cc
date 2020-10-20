@@ -12,22 +12,53 @@
 
 #include <unordered_map>
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
+#include "artdaq-core/Utilities/TimeUtils.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
-#include "artdaq-core/Utilities/TimeUtils.hh"
 
 namespace artdaq {
 namespace hdf5 {
+/**
+ * @brief ProtoDUNE Sample HDF5 Module that writes events grouped by timestamp
+ */
 class HighFiveGeoCmpltPDSPSample : public FragmentDataset
 {
 public:
+	/**
+	 * @brief HighFiveGeoCmpltPDSPSample Constructor
+	 * @param ps ParameterSet for HighFiveGeoCmpltPDSPSample
+	*/
 	HighFiveGeoCmpltPDSPSample(fhicl::ParameterSet const& ps);
+	/**
+	 * @brief HighFiveGeoCmpltPDSPSample Destructor
+	*/
 	virtual ~HighFiveGeoCmpltPDSPSample();
 
+	/**
+	 * @brief Write a Fragment to HDF5
+	 * @param frag Fragment to write
+	*/
 	void insertOne(artdaq::Fragment const& frag) override;
+	/**
+	 * @brief Write Fragments to HDF5
+	 * @param frags Fragments to write
+	*/
 	void insertMany(artdaq::Fragments const& frags) override;
+	/**
+	 * @brief Write a RawEventHeader to HDF5
+	 * @param hdr Header to write
+	*/
 	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
+	/**
+	 * @brief Read event data from HDF5
+	 * @return Fragment data organized by Fragment type
+	*/
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
+	/**
+	 * @brief Read an Event Header from HDF55
+	 * @param seqID Sequence ID to read
+	 * @return Pointer to RawEventHeader
+	*/
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
@@ -64,12 +95,12 @@ artdaq::hdf5::HighFiveGeoCmpltPDSPSample::HighFiveGeoCmpltPDSPSample(fhicl::Para
 		file_.reset(new HighFive::File(ps.get<std::string>("fileName"), HighFive::File::OpenOrCreate | HighFive::File::Truncate));
 	}
 
-        windowOfInterestStart = ps.get<uint64_t>("windowOfInterestStart");
-        windowOfInterestSize = ps.get<uint64_t>("windowOfInterestSize", 50000);
+	windowOfInterestStart = ps.get<uint64_t>("windowOfInterestStart");
+	windowOfInterestSize = ps.get<uint64_t>("windowOfInterestSize", 50000);
 	outputTimeStampDelta = ps.get<uint64_t>("outputTimeStampDelta", 0);
 
-        overallFirstFrameTimeStamp = 0x0fffffffffffffff;
-        overallLastFrameTimeStamp = 0;
+	overallFirstFrameTimeStamp = 0x0fffffffffffffff;
+	overallLastFrameTimeStamp = 0;
 
 	TLOG(TLVL_DEBUG) << "HighFiveGeoCmpltPDSPSample CONSTRUCTOR END";
 }
@@ -83,7 +114,7 @@ artdaq::hdf5::HighFiveGeoCmpltPDSPSample::~HighFiveGeoCmpltPDSPSample()
 void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const& frag)
 {
 	TLOG(TLVL_TRACE) << "insertOne BEGIN";
-        uint64_t timeSliceGroupTimeStamp = windowOfInterestStart - outputTimeStampDelta;
+	uint64_t timeSliceGroupTimeStamp = windowOfInterestStart - outputTimeStampDelta;
 	if (!file_->exist(std::to_string(timeSliceGroupTimeStamp)))
 	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Creating group for windowOfInterest " << timeSliceGroupTimeStamp;
@@ -91,83 +122,82 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 	}
 	auto timeSliceGroup = file_->getGroup(std::to_string(timeSliceGroupTimeStamp));
 
-        // fragment_type_map: [[1, "MISSED"], [2, "TPC"], [3, "PHOTON"], [4, "TRIGGER"], [5, "TIMING"], [6, "TOY1"], [7, "TOY2"], [8, "FELIX"], [9, "CRT"], [10, "CTB"], [11, "CPUHITS"], [12, "DEVBOARDHITS"], [13, "UNKNOWN"]]
+	// fragment_type_map: [[1, "MISSED"], [2, "TPC"], [3, "PHOTON"], [4, "TRIGGER"], [5, "TIMING"], [6, "TOY1"], [7, "TOY2"], [8, "FELIX"], [9, "CRT"], [10, "CTB"], [11, "CPUHITS"], [12, "DEVBOARDHITS"], [13, "UNKNOWN"]]
 
 	if (frag.type() == Fragment::ContainerFragmentType)
 	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Processing ContainerFragment";
 		ContainerFragment cf(frag);
 
-                if (cf.fragment_type() == 8)
-                {
-
-		if (cf.fragment_type() != 10 && (cf.block_count() > 1 || cf.fragment_type() == 9))
+		if (cf.fragment_type() == 8)
 		{
-			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
-			auto fragPtr = cf.at(0);
-			auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
-			if (!timeSliceGroup.exist(typeName))
+			if (cf.fragment_type() != 10 && (cf.block_count() > 1 || cf.fragment_type() == 9))
 			{
-				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
-				timeSliceGroup.createGroup(typeName);
-			}
-
-			TLOG(TLVL_INSERTONE) << "insertOne: Creating group and setting attributes";
-			auto typeGroup = timeSliceGroup.getGroup(typeName);
-                        std::string containerName = "Container0";
-
-                        int counter = 1;
-                        while (typeGroup.exist(containerName))
-                        {
-                          //TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
-                          containerName = "Container" + std::to_string(counter);
-                          counter++;
-                        }
-
-			auto containerGroup = typeGroup.createGroup(containerName);
-			containerGroup.createAttribute("version", frag.version());
-			containerGroup.createAttribute("type", frag.type());
-			containerGroup.createAttribute("sequence_id", frag.sequenceID());
-			containerGroup.createAttribute("fragment_id", frag.fragmentID());
-			containerGroup.createAttribute("timestamp", frag.timestamp());
-
-			containerGroup.createAttribute("container_block_count", cf.block_count());
-			containerGroup.createAttribute("container_fragment_type", cf.fragment_type());
-			containerGroup.createAttribute("container_version", cf.metadata()->version);
-			containerGroup.createAttribute("container_missing_data", cf.missing_data());
-
-			TLOG(TLVL_INSERTONE) << "insertOne: Writing Container contained Fragments";
-			for (size_t ii = 0; ii < cf.block_count(); ++ii)
-			{
-				if (ii != 0)
+				TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
+				auto fragPtr = cf.at(0);
+				auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
+				if (!timeSliceGroup.exist(typeName))
 				{
-					fragPtr = cf.at(ii);
+					TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
+					timeSliceGroup.createGroup(typeName);
 				}
-				writeFragment_(containerGroup, *fragPtr);
-			}
-		}
-		else if (cf.block_count() == 1 || cf.fragment_type() == 10)
-		{
-			TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
-			auto fragPtr = cf.at(0);
-			auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
-			if (!timeSliceGroup.exist(typeName))
-			{
-				TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
-				timeSliceGroup.createGroup(typeName);
-			}
 
-			TLOG(TLVL_INSERTONE) << "insertOne: Creating type group";
-			auto typeGroup = timeSliceGroup.getGroup(typeName);
-			for (size_t ii = 0; ii < cf.block_count(); ++ii)
-			{
-				if (ii != 0)
+				TLOG(TLVL_INSERTONE) << "insertOne: Creating group and setting attributes";
+				auto typeGroup = timeSliceGroup.getGroup(typeName);
+				std::string containerName = "Container0";
+
+				int counter = 1;
+				while (typeGroup.exist(containerName))
 				{
-					fragPtr = cf.at(ii);
+					//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+					containerName = "Container" + std::to_string(counter);
+					counter++;
 				}
-				writeFragment_(typeGroup, *fragPtr);
+
+				auto containerGroup = typeGroup.createGroup(containerName);
+				containerGroup.createAttribute("version", frag.version());
+				containerGroup.createAttribute("type", frag.type());
+				containerGroup.createAttribute("sequence_id", frag.sequenceID());
+				containerGroup.createAttribute("fragment_id", frag.fragmentID());
+				containerGroup.createAttribute("timestamp", frag.timestamp());
+
+				containerGroup.createAttribute("container_block_count", cf.block_count());
+				containerGroup.createAttribute("container_fragment_type", cf.fragment_type());
+				containerGroup.createAttribute("container_version", cf.metadata()->version);
+				containerGroup.createAttribute("container_missing_data", cf.missing_data());
+
+				TLOG(TLVL_INSERTONE) << "insertOne: Writing Container contained Fragments";
+				for (size_t ii = 0; ii < cf.block_count(); ++ii)
+				{
+					if (ii != 0)
+					{
+						fragPtr = cf.at(ii);
+					}
+					writeFragment_(containerGroup, *fragPtr);
+				}
 			}
-		}
+			else if (cf.block_count() == 1 || cf.fragment_type() == 10)
+			{
+				TLOG(TLVL_INSERTONE) << "insertOne: Getting Fragment type name";
+				auto fragPtr = cf.at(0);
+				auto typeName = nameHelper_->GetInstanceNameForFragment(*fragPtr).second;
+				if (!timeSliceGroup.exist(typeName))
+				{
+					TLOG(TLVL_INSERTONE) << "insertOne: Creating group for type " << typeName;
+					timeSliceGroup.createGroup(typeName);
+				}
+
+				TLOG(TLVL_INSERTONE) << "insertOne: Creating type group";
+				auto typeGroup = timeSliceGroup.getGroup(typeName);
+				for (size_t ii = 0; ii < cf.block_count(); ++ii)
+				{
+					if (ii != 0)
+					{
+						fragPtr = cf.at(ii);
+					}
+					writeFragment_(typeGroup, *fragPtr);
+				}
+			}
 #if 0
 		else
 		{
@@ -183,13 +213,13 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 			writeFragment_(typeGroup, frag);
 		}
 #endif
-                }
+		}
 	}
 	else if (frag.type() == 5)  // Timing
-        {
-          //TLOG(TLVL_INSERTONE) << "insertOne: Writing Timing Fragment";
-          //writeFragment_(timeSliceGroup, frag);
-        }
+	{
+		//TLOG(TLVL_INSERTONE) << "insertOne: Writing Timing Fragment";
+		//writeFragment_(timeSliceGroup, frag);
+	}
 	else
 	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Writing non-Container Fragment";
@@ -217,7 +247,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertMany(artdaq::Fragments cons
 void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertHeader(artdaq::detail::RawEventHeader const& hdr)
 {
 	TLOG(TLVL_TRACE) << "insertHeader BEGIN";
-        uint64_t timeSliceGroupTimeStamp = windowOfInterestStart - outputTimeStampDelta;
+	uint64_t timeSliceGroupTimeStamp = windowOfInterestStart - outputTimeStampDelta;
 	if (!file_->exist(std::to_string(timeSliceGroupTimeStamp)))
 	{
 		TLOG(TLVL_INSERTONE) << "insertOne: Creating group for windowOfInterest " << timeSliceGroupTimeStamp;
@@ -230,12 +260,12 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertHeader(artdaq::detail::RawE
 	timeSliceGroup.createAttribute("source_event_id", hdr.event_id);
 
 	timeSliceGroup.createAttribute("time_slice_start", timeSliceGroupTimeStamp);
-        timeSliceGroup.createAttribute("start_time_string", createTimeString(timeSliceGroupTimeStamp));
+	timeSliceGroup.createAttribute("start_time_string", createTimeString(timeSliceGroupTimeStamp));
 
-        uint64_t timeSliceGroupEnd = timeSliceGroupTimeStamp + windowOfInterestSize;
+	uint64_t timeSliceGroupEnd = timeSliceGroupTimeStamp + windowOfInterestSize;
 	timeSliceGroup.createAttribute("time_slice_end", timeSliceGroupEnd);
-        timeSliceGroup.createAttribute("end_time_string", createTimeString(timeSliceGroupEnd));
-        TLOG(TLVL_DEBUG) << "overallFrameTimeStamps " << std::hex << overallFirstFrameTimeStamp << " and " << overallLastFrameTimeStamp << std::dec;
+	timeSliceGroup.createAttribute("end_time_string", createTimeString(timeSliceGroupEnd));
+	TLOG(TLVL_DEBUG) << "overallFrameTimeStamps " << std::hex << overallFirstFrameTimeStamp << " and " << overallLastFrameTimeStamp << std::dec;
 	timeSliceGroup.createAttribute("first_frame_timestamp", overallFirstFrameTimeStamp);
 	timeSliceGroup.createAttribute("last_frame_timestamp", overallLastFrameTimeStamp);
 	timeSliceGroup.createAttribute("is_complete", 0);
@@ -376,123 +406,125 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 {
 	TLOG(TLVL_TRACE) << "writeFragment_ BEGIN";
 
-        uint64_t windowOfInterestEnd = windowOfInterestStart + windowOfInterestSize;
-        int firstFrameOfInterest = -1;
-        int lastFrameOfInterest = -1;
+	uint64_t windowOfInterestEnd = windowOfInterestStart + windowOfInterestSize;
+	int firstFrameOfInterest = -1;
+	int lastFrameOfInterest = -1;
 	uint64_t firstFrameTimeStamp = 0;
 	uint64_t lastFrameTimeStamp = 0;
 
-        std::string datasetNameBase = "TimeSlice";
-        std::string datasetName = "TimeSlice0";
+	std::string datasetNameBase = "TimeSlice";
+	std::string datasetName = "TimeSlice0";
 
-        switch (frag.type())
-          {
-          case 2:  // TPC
-            datasetNameBase = "APA3." + std::to_string( (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            break;
-          case 3:  // Photon
-            datasetNameBase = "APA" + std::to_string( (int) (frag.fragmentID() / 10) ) + "." + std::to_string( -1 + (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            break;
-          case 5:  // Timing
-            datasetNameBase = "Timing";
-            datasetName = datasetNameBase;
-            break;
-          case 8:  // FELIX
-            int apaNumber = ((int) (frag.fragmentID() / 10)) % 10;
-            if (apaNumber == 3) {apaNumber = 2;}
-            datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string( (int) (frag.fragmentID() % 10) );
-            datasetName = datasetNameBase;
-            TLOG(TLVL_DEBUG) << "Dataset Name: " << datasetName << ", fragment size=" << frag.size();
+	switch (frag.type())
+	{
+		case 2:  // TPC
+			datasetNameBase = "APA3." + std::to_string((int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			break;
+		case 3:  // Photon
+			datasetNameBase = "APA" + std::to_string((int)(frag.fragmentID() / 10)) + "." + std::to_string(-1 + (int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			break;
+		case 5:  // Timing
+			datasetNameBase = "Timing";
+			datasetName = datasetNameBase;
+			break;
+		case 8:  // FELIX
+			int apaNumber = ((int)(frag.fragmentID() / 10)) % 10;
+			if (apaNumber == 3) { apaNumber = 2; }
+			datasetNameBase = "APA" + std::to_string(apaNumber) + "." + std::to_string((int)(frag.fragmentID() % 10));
+			datasetName = datasetNameBase;
+			TLOG(TLVL_DEBUG) << "Dataset Name: " << datasetName << ", fragment size=" << frag.size();
 
-            const uint8_t* tmpBeginPtr = frag.dataBeginBytes();
-            const uint8_t* tmpEndPtr = frag.dataEndBytes();
-            const uint64_t* beginPtr = reinterpret_cast<const uint64_t*>(tmpBeginPtr);
-            const uint64_t* endPtr = reinterpret_cast<const uint64_t*>(tmpEndPtr);
-            TLOG(TLVL_DEBUG) << "Data addresses in hex: " << std::hex << tmpBeginPtr << ", " << tmpEndPtr << ", " << beginPtr << ", " << endPtr << std::dec;
+			const uint8_t* tmpBeginPtr = frag.dataBeginBytes();
+			const uint8_t* tmpEndPtr = frag.dataEndBytes();
+			const uint64_t* beginPtr = reinterpret_cast<const uint64_t*>(tmpBeginPtr);
+			const uint64_t* endPtr = reinterpret_cast<const uint64_t*>(tmpEndPtr);
+			TLOG(TLVL_DEBUG) << "Data addresses in hex: " << std::hex << tmpBeginPtr << ", " << tmpEndPtr << ", " << beginPtr << ", " << endPtr << std::dec;
 
-            uint64_t* mdPtr = reinterpret_cast<uint64_t*>(const_cast<uint8_t*>(frag.headerBeginBytes()) + frag.headerSizeBytes());
-            TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
-            ++mdPtr;
-            TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
+			uint64_t* mdPtr = reinterpret_cast<uint64_t*>(const_cast<uint8_t*>(frag.headerBeginBytes()) + frag.headerSizeBytes());
+			TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
+			++mdPtr;
+			TLOG(TLVL_DEBUG) << "Metadata address and data: " << std::hex << mdPtr << ", " << *mdPtr << std::dec;
 
-            if (frag.size() == 349397) {
-              uint64_t* dataPtr = const_cast<uint64_t*>(beginPtr);
-              ++dataPtr;
-              for (int idx = 0; idx < 20; ++idx) {
-                TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
-                TLOG(TLVL_DEBUG) << "Frame time is " << createTimeString(*dataPtr);
-                dataPtr += 58;
-              }
-              dataPtr += 347072;
-              while (dataPtr <= endPtr) {
-                TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
-                TLOG(TLVL_DEBUG) << "Frame time is " << createTimeString(*dataPtr);
-                dataPtr += 58;
-              }
+			if (frag.size() == 349397)
+			{
+				uint64_t* dataPtr = const_cast<uint64_t*>(beginPtr);
+				++dataPtr;
+				for (int idx = 0; idx < 20; ++idx)
+				{
+					TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
+					TLOG(TLVL_DEBUG) << "Frame time is " << createTimeString(*dataPtr);
+					dataPtr += 58;
+				}
+				dataPtr += 347072;
+				while (dataPtr <= endPtr)
+				{
+					TLOG(TLVL_DEBUG) << std::hex << *dataPtr << std::dec;
+					TLOG(TLVL_DEBUG) << "Frame time is " << createTimeString(*dataPtr);
+					dataPtr += 58;
+				}
 
+				dataPtr = const_cast<uint64_t*>(beginPtr);
+				++dataPtr;
+				int loopCounter = 0;
+				while (dataPtr <= endPtr)
+				{
+					if (firstFrameOfInterest == -1 && (*dataPtr) >= windowOfInterestStart)
+					{
+						firstFrameOfInterest = loopCounter;
+						firstFrameTimeStamp = *dataPtr;
+						if (firstFrameTimeStamp < overallFirstFrameTimeStamp)
+						{
+							overallFirstFrameTimeStamp = firstFrameTimeStamp;
+						}
+					}
 
-              dataPtr = const_cast<uint64_t*>(beginPtr);
-              ++dataPtr;
-              int loopCounter = 0;
-              while (dataPtr <= endPtr) {
-                if (firstFrameOfInterest == -1 && (*dataPtr) >= windowOfInterestStart)
-                {
-                  firstFrameOfInterest = loopCounter;
-                  firstFrameTimeStamp = *dataPtr;
-                  if (firstFrameTimeStamp < overallFirstFrameTimeStamp)
-                  {
-                    overallFirstFrameTimeStamp = firstFrameTimeStamp;
-                  }
-                }
+					if (firstFrameOfInterest >= 0 && lastFrameOfInterest == -1 && (*dataPtr) >= windowOfInterestEnd)
+					{
+						lastFrameOfInterest = loopCounter - 1;
+					}
 
-                if (firstFrameOfInterest >= 0 && lastFrameOfInterest == -1 && (*dataPtr) >= windowOfInterestEnd)
-                {
-                  lastFrameOfInterest = loopCounter - 1;
-                }
+					if (firstFrameOfInterest >= 0 && lastFrameOfInterest >= 0)
+					{
+						break;
+					}
 
-                if (firstFrameOfInterest >= 0 && lastFrameOfInterest >= 0)
-                {
-                  break;
-                }
+					lastFrameTimeStamp = *dataPtr;
+					++loopCounter;
+					dataPtr += 58;
+				}
+				if (lastFrameOfInterest == -1) { lastFrameOfInterest = loopCounter - 1; }
+				TLOG(TLVL_DEBUG) << "lastFrameTimeStamps (1) " << std::hex << lastFrameTimeStamp << " and " << overallLastFrameTimeStamp << std::dec;
+				if (lastFrameTimeStamp > overallLastFrameTimeStamp)
+				{
+					overallLastFrameTimeStamp = lastFrameTimeStamp;
+				}
+				TLOG(TLVL_DEBUG) << "lastFrameTimeStamps (2) " << std::hex << lastFrameTimeStamp << " and " << overallLastFrameTimeStamp << std::dec;
+				TLOG(TLVL_DEBUG) << "first and last frames of interest are " << firstFrameOfInterest << " and " << lastFrameOfInterest;
+				TLOG(TLVL_DEBUG) << "first and last frame timestamps are " << std::hex << firstFrameTimeStamp << " and " << lastFrameTimeStamp << std::dec;
+			}
+			else
+			{
+				TLOG(TLVL_DEBUG) << "Skipping Dataset: " << datasetName << ", fragment size=" << frag.size();
+			}
 
-                lastFrameTimeStamp = *dataPtr;
-                ++loopCounter;
-                dataPtr += 58;
-              }
-              if (lastFrameOfInterest == -1) {lastFrameOfInterest = loopCounter - 1;}
-              TLOG(TLVL_DEBUG) << "lastFrameTimeStamps (1) " << std::hex << lastFrameTimeStamp << " and " << overallLastFrameTimeStamp << std::dec;
-              if (lastFrameTimeStamp > overallLastFrameTimeStamp)
-              {
-                overallLastFrameTimeStamp = lastFrameTimeStamp;
-              }
-              TLOG(TLVL_DEBUG) << "lastFrameTimeStamps (2) " << std::hex << lastFrameTimeStamp << " and " << overallLastFrameTimeStamp << std::dec;
-              TLOG(TLVL_DEBUG) << "first and last frames of interest are " << firstFrameOfInterest << " and " << lastFrameOfInterest;
-              TLOG(TLVL_DEBUG) << "first and last frame timestamps are " << std::hex << firstFrameTimeStamp << " and " << lastFrameTimeStamp << std::dec;
+			break;
+	}
 
-
-            }
-            else {
-              TLOG(TLVL_DEBUG) << "Skipping Dataset: " << datasetName << ", fragment size=" << frag.size();
-            }
-
-            break;
-          }
-
-        if (firstFrameOfInterest == -1 || lastFrameOfInterest == -1) {return;}
-        int numberOfFrames = lastFrameOfInterest - firstFrameOfInterest + 1;
+	if (firstFrameOfInterest == -1 || lastFrameOfInterest == -1) { return; }
+	int numberOfFrames = lastFrameOfInterest - firstFrameOfInterest + 1;
 
 	int counter = 1;
 	while (group.exist(datasetName))
 	{
-          //TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+		//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
 		datasetName = datasetNameBase + std::to_string(counter);
 		counter++;
 	}
 
 	TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Creating DataSpace";
-	HighFive::DataSpace fragmentSpace = HighFive::DataSpace({ ((uint32_t) (numberOfFrames * 58)), 1});
+	HighFive::DataSpace fragmentSpace = HighFive::DataSpace({((uint32_t)(numberOfFrames * 58)), 1});
 	auto fragDset = group.createDataSet<RawDataType>(datasetName, fragmentSpace, fragmentCProps_, fragmentAProps_);
 
 	TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Creating Attributes from Fragment Header";
@@ -520,8 +552,8 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 	fragDset.createAttribute("last_frame_timestamp", lastFrameTimeStamp);
 	fragDset.createAttribute("last_frame_time_string", createTimeString(lastFrameTimeStamp));
 
-        const uint8_t* tmpBeginPtr = frag.dataBeginBytes();
-        const uint64_t* beginPtr = reinterpret_cast<const uint64_t*>(tmpBeginPtr);
+	const uint8_t* tmpBeginPtr = frag.dataBeginBytes();
+	const uint64_t* beginPtr = reinterpret_cast<const uint64_t*>(tmpBeginPtr);
 
 	TLOG(TLVL_WRITEFRAGMENT_V) << "writeFragment_: Writing Fragment payload START";
 	fragDset.write(beginPtr + (firstFrameOfInterest * 58));
@@ -586,10 +618,10 @@ artdaq::FragmentPtr artdaq::hdf5::HighFiveGeoCmpltPDSPSample::readFragment_(High
 
 std::string artdaq::hdf5::createTimeString(const uint64_t& timeValue)
 {
-  timespec tsp;
-  tsp.tv_sec = (time_t) (((double) timeValue) * 0.000000020);
-  tsp.tv_nsec = (long) ((timeValue % 50000000) * 20);
-  return artdaq::TimeUtils::convertUnixTimeToString(tsp);
+	timespec tsp;
+	tsp.tv_sec = (time_t)(((double)timeValue) * 0.000000020);
+	tsp.tv_nsec = (long)((timeValue % 50000000) * 20);
+	return artdaq::TimeUtils::convertUnixTimeToString(tsp);
 }
 
 DEFINE_ARTDAQ_DATASET_PLUGIN(artdaq::hdf5::HighFiveGeoCmpltPDSPSample)

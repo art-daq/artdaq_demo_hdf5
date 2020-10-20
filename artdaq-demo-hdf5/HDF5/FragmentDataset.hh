@@ -2,10 +2,10 @@
 #define artdaq_demo_hdf5_hdf5_FragmentDataset_hh 1
 
 #include "artdaq-core/Data/Fragment.hh"
+#include "artdaq-core/Data/FragmentNameHelper.hh"
 #include "artdaq-core/Data/RawEvent.hh"
 #include "cetlib/compiler_macros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "artdaq-core/Data/FragmentNameHelper.hh"
 
 #include <unordered_map>
 
@@ -45,7 +45,6 @@ public:
 	/**
 	 * @brief Insert a Fragment into the Dataset (write it to the HDF5 file)
 	 * @param f Fragment to insert
-	 * @param instance_name String name to identify Fragment
 	 *
 	 * This function is pure virtual.
 	 */
@@ -53,7 +52,6 @@ public:
 	/**
 	 * @brief Insert several Fragments into the Dataset (write them to the HDF5 file)
 	 * @param fs Fragments to insert
-	 * @param instance_name String name to identify Fragments
 	 */
 	virtual void insertMany(Fragments const& fs)
 	{
@@ -83,8 +81,8 @@ public:
 	virtual std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) = 0;
 
 protected:
-	FragmentDatasetMode mode_;  ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
-	std::shared_ptr<artdaq::FragmentNameHelper> nameHelper_;
+	FragmentDatasetMode mode_;                                ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
+	std::shared_ptr<artdaq::FragmentNameHelper> nameHelper_;  ///< FragmentNameHelper used to translate between Fragment Type and string instance names
 
 private:
 	FragmentDataset(FragmentDataset const&) = delete;

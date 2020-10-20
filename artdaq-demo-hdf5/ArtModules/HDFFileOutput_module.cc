@@ -15,8 +15,8 @@
 #include "canvas/Utilities/Exception.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "artdaq/DAQdata/Globals.hh"
 #include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
+#include "artdaq/DAQdata/Globals.hh"
 
 #include <unistd.h>
 #include <cstdio>
@@ -196,4 +196,4 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 	TLOG(TLVL_TRACE) << "End: HDFFileOUtput::write(EventPrincipal& ep)";
 }
 
-DEFINE_ART_MODULE(art::HDFFileOutput)// NOLINT(performance-unnecessary-value-param)
+DEFINE_ART_MODULE(art::HDFFileOutput)  // NOLINT(performance-unnecessary-value-param)
