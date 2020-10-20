@@ -81,8 +81,8 @@ public:
 	virtual std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) = 0;
 
 protected:
-	FragmentDatasetMode mode_;  ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
-	std::shared_ptr<artdaq::FragmentNameHelper> nameHelper_; ///< FragmentNameHelper used to translate between Fragment Type and string instance names
+	FragmentDatasetMode mode_;                                ///< Mode of this FragmentDataset, either FragmentDatasetMode::Write or FragmentDatasetMode::Read
+	std::shared_ptr<artdaq::FragmentNameHelper> nameHelper_;  ///< FragmentNameHelper used to translate between Fragment Type and string instance names
 
 private:
 	FragmentDataset(FragmentDataset const&) = delete;
