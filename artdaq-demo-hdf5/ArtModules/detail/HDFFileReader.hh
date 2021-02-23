@@ -125,20 +125,6 @@ struct HDFFileReader
 		TLOG_INFO("HDFFileReader") << "HDFFileReader initialized with ParameterSet: " << ps.to_string();
 	}
 
-#if ART_HEX_VERSION < 0x30000
-	/**
-   * \brief HDFFileReader Constructor
-   * \param ps ParameterSet used for configuring HDFFileReader
-   * \param help art::ProductRegistryHelper which is used to inform art about different Fragment types
-   * \param pm art::SourceHelper used to initalize the SourceHelper member
-   *
-   * This constructor calls the three-parameter constructor, the art::MasterProductRegistry parameter is discarded.
-   */
-	HDFFileReader(fhicl::ParameterSet const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm,
-	              art::MasterProductRegistry&)
-	    : HDFFileReader(ps, help, pm) {}
-#endif
-
 	/**
    * \brief HDFFileReader destructor
    */
@@ -281,11 +267,9 @@ struct HDFFileReader
 			if (inR == nullptr || inR->run() != evtHeader->run_id)
 			{
 				outSR = pmaker.makeSubRunPrincipal(evtHeader->run_id, evtHeader->subrun_id, currentTime);
-#if ART_HEX_VERSION > 0x30000
+
 				art::EventID const evid(art::EventID::flushEvent(outSR->subRunID()));
-#else
-				art::EventID const evid(art::EventID::flushEvent(outSR->id()));
-#endif
+
 				outE = pmaker.makeEventPrincipal(evid, currentTime);
 			}
 			else
@@ -294,17 +278,12 @@ struct HDFFileReader
 				// subrun, then it must have been associated with a data event.  In that case, we need
 				// to generate a flush event with a valid run but flush subrun and event number in order
 				// to end the subrun.
-#if ART_HEX_VERSION > 0x30000
+
 				if (inSR != nullptr && !inSR->subRunID().isFlush() && inSR->subRun() == evtHeader->subrun_id)
-#else
-				if (inSR != nullptr && !inSR->id().isFlush() && inSR->subRun() == evtHeader->subrun_id)
-#endif
+
 				{
-#if ART_HEX_VERSION > 0x30000
 					art::EventID const evid(art::EventID::flushEvent(inR->runID()));
-#else
-					art::EventID const evid(art::EventID::flushEvent(inR->id()));
-#endif
+
 					outSR = pmaker.makeSubRunPrincipal(evid.subRunID(), currentTime);
 					outE = pmaker.makeEventPrincipal(evid, currentTime);
 					// If this is either a new or another empty subrun, then generate a flush event with
@@ -314,11 +293,9 @@ struct HDFFileReader
 				else
 				{
 					outSR = pmaker.makeSubRunPrincipal(evtHeader->run_id, evtHeader->subrun_id, currentTime);
-#if ART_HEX_VERSION > 0x30000
+
 					art::EventID const evid(art::EventID::flushEvent(outSR->subRunID()));
-#else
-					art::EventID const evid(art::EventID::flushEvent(outSR->id()));
-#endif
+
 					outE = pmaker.makeEventPrincipal(evid, currentTime);
 					// Possible error condition
 					//} else {
@@ -331,13 +308,10 @@ struct HDFFileReader
 
 		// make new subrun if inSR is 0 or if the subrun has changed
 		art::SubRunID subrun_check(evtHeader->run_id, evtHeader->subrun_id);
-#if ART_HEX_VERSION > 0x30000
+
 		if (inSR == nullptr || subrun_check != inSR->subRunID())
 		{
-#else
-		if (inSR == nullptr || subrun_check != inSR->id())
-		{
-#endif
+
 			outSR = pmaker.makeSubRunPrincipal(evtHeader->run_id, evtHeader->subrun_id, currentTime);
 		}
 		outE = pmaker.makeEventPrincipal(evtHeader->run_id, evtHeader->subrun_id, evtHeader->event_id, currentTime);
