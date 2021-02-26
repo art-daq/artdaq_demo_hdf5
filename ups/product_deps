@@ -1,7 +1,7 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent artdaq_demo_hdf5	v1_01_03
-defaultqual	e19:s96
+parent artdaq_demo_hdf5	v1_01_04
+defaultqual	e19:s97
 
 # These optional lines define the installed directories where
 # headers, libraries, and executables will be found
