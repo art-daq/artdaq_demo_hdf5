@@ -7,11 +7,11 @@
 # ======================================================================
 
 
-# use cmake 3.17 or later
 cmake_minimum_required (VERSION 3.17)
 
+find_package(cetbuildtools)
 
-project(artdaq-demo-hdf5)
+project(artdaq_demo_hdf5 VERSION 1.01.04)
 # cetbuildtools contains our cmake modules
 SET ( CETBUILDTOOLS_VERSION $ENV{CETBUILDTOOLS_VERSION} )
 IF (NOT CETBUILDTOOLS_VERSION)
@@ -58,11 +58,11 @@ cet_report_compiler_flags()
 # these are minimum required versions, not the actual product versions
 find_ups_product( cetbuildtools v3_03_00 )
 find_ups_product( TRACE v3_03_00 )
-find_ups_product( artdaq v0_04_02 )
-find_ups_product( artdaq_utilities v1_00_00)
+find_ups_product( artdaq_utilities v1_00_00 )
 find_ups_product( artdaq_core v1_00_00 )
+find_ups_product( artdaq v3_09_00 )
 find_ups_product( art v1_06_00 )
-  find_ups_product( canvas v1_00_00 )
+find_ups_product( canvas v1_00_00 )
 find_ups_product( fhiclcpp v2_16_00 )
 find_ups_product( messagefacility v1_10_00 )
 #find_ups_product( cpp0x v1_03_00 )
@@ -72,7 +72,7 @@ find_ups_boost( v1_50_0 filesystem
                         program_options
                         unit_test_framework
  )
- find_ups_product( hdf5 v1_10_3)
+find_ups_product( hdf5 v1_12_0 )
 
  
 if( ${BTYPE_UC} MATCHES "DEBUG" )

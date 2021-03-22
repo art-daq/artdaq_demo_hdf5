@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent artdaq_demo_hdf5	v1_01_04
+parent artdaq_demo_hdf5	
 defaultqual	e19:s97
 
 # These optional lines define the installed directories where
@@ -19,13 +19,20 @@ bindir      fq_dir      bin
 product		 version	optional
 artdaq           v3_09_05
 hdf5             v1_12_0a
-cetbuildtools    v7_17_01       -       only_for_build
+cetbuildtools    v8_04_00       -       only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier          artdaq            hdf5
+c7:s107:prof  	   c7:s107:prof  	 c7:prof
+c7:s107:debug  	   c7:s107:debug 	 c7:debug
+e20:s107:prof   	   e20:s107:prof  	 e20:prof
+e20:s107:debug  	   e20:s107:debug 	 e20:debug
+e19:s107:prof   	   e19:s107:prof  	 e19:prof
+e19:s107:debug  	   e19:s107:debug 	 e19:debug
+
 c7:s106:prof  	   c7:s106:prof  	 c7:prof
 c7:s106:debug  	   c7:s106:debug 	 c7:debug
 e20:s106:prof   	   e20:s106:prof  	 e20:prof
