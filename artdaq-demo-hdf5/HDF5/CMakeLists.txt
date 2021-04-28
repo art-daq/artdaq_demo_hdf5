@@ -7,7 +7,8 @@ cet_make_library(
   fhiclcpp
   ${CETLIB}
   ${CETLIB_EXCEPT}
-  artdaq-core_Utilities
+  artdaq_core::artdaq-core_Data
+  artdaq_core::artdaq-core_Utilities
   ${MF_MESSAGELOGGER}
 )
 

@@ -9,7 +9,7 @@ simple_plugin(HDFFileOutput "module"
 simple_plugin(HDFFileInput "source"
   artdaq-demo-hdf5_HDF5
   artdaq_DAQdata
-  artdaq-utilities_Plugins  
+  artdaq_utilities::artdaq-utilities_Plugins  
   art_Framework_Services_Registry
 )
 
