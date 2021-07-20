@@ -27,7 +27,6 @@ set(CMAKE_MODULE_PATH
 
 include(CetCMakeEnv)
 cet_cmake_env()
-set(artdaq_demo_hdf5_OLD_STYLE_CONFIG_VARS TRUE)
 
 cet_set_compiler_flags(DIAGS VIGILANT
  WERROR
