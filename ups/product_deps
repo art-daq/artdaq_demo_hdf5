@@ -20,15 +20,22 @@ old_style_config_vars
 
 #
 product			version		optional
-artdaq			v3_10_02
+artdaq			v3_10_03
 hdf5			v1_12_0a
-cetbuildtools	v8_11_00	-	only_for_build
+cetbuildtools	v8_13_03	-	only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier		artdaq			hdf5
+c7:s112:prof	c7:s112:prof	c7:prof
+c7:s112:debug	c7:s112:debug	c7:debug
+e20:s112:prof	e20:s112:prof	e20:prof
+e20:s112:debug	e20:s112:debug	e20:debug
+e19:s112:prof	e19:s112:prof	e19:prof
+e19:s112:debug	e19:s112:debug	e19:debug
+
 c7:s111:prof	c7:s111:prof	c7:prof
 c7:s111:debug	c7:s111:debug	c7:debug
 e20:s111:prof	e20:s111:prof	e20:prof
