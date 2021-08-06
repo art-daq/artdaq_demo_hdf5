@@ -5,10 +5,11 @@ cet_make_library(
   MakeDatasetPlugin.cc
   LIBRARIES
   fhiclcpp
-  ${CETLIB}
-  ${CETLIB_EXCEPT}
-  artdaq-core_Utilities
-  ${MF_MESSAGELOGGER}
+  cetlib
+  cetlib_except
+  artdaq_core::artdaq-core_Data
+  artdaq_core::artdaq-core_Utilities
+  MF_MessageLogger
 )
 
 # 03/23/2020, ELF: Removing the hep-hpc builds, they are write-only and based on a dev product.

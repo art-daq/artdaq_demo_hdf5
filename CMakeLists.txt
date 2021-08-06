@@ -7,11 +7,11 @@
 # ======================================================================
 
 
-# use cmake 3.17 or later
 cmake_minimum_required (VERSION 3.17)
 
+find_package(cetbuildtools)
 
-project(artdaq-demo-hdf5)
+project(artdaq_demo_hdf5 VERSION 1.02.03)
 # cetbuildtools contains our cmake modules
 SET ( CETBUILDTOOLS_VERSION $ENV{CETBUILDTOOLS_VERSION} )
 IF (NOT CETBUILDTOOLS_VERSION)
@@ -33,36 +33,40 @@ cet_set_compiler_flags(DIAGS VIGILANT
  NO_UNDEFINED
  EXTRA_FLAGS -pedantic
  )
-
-string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
-if( ${BTYPE_UC} MATCHES "DEBUG" )
+ 
+string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC)
+if(BTYPE_UC STREQUAL DEBUG)
+  add_definitions(-DDEBUGME)
 	if(DEFINED ENV{USE_ASAN})
 		if($ENV{USE_ASAN} GREATER 0)
 			message("!!! Address Sanitizer Activated!!!")
-			cet_add_compiler_flags(-fsanitize=address -lasan -Wno-unused-command-line-argument)
+			add_compile_options(-fsanitize=address -Wno-unused-command-line-argument)
+			add_link_options(-lasan)
 		endif()
 	endif()
 	if(DEFINED ENV{USE_TSAN})
 		if($ENV{USE_TSAN} GREATER 0)
 			message("!!! Thread Sanitizer Activated!!!")
-			cet_add_compiler_flags(-fsanitize=thread -ltsan -Wno-unused-command-line-argument)
+			add_compile_options(-fsanitize=thread -Wno-unused-command-line-argument)
+			add_link_options(-ltsan)
 		endif()
 	endif()
 	if(DEFINED ENV{USE_GCOV})
-		cet_add_compiler_flags(-fprofile-arcs -ftest-coverage --coverage)
+		add_compile_options(-fprofile-arcs -ftest-coverage --coverage)
+		add_link_options(--coverage)
 	endif()
 endif()
 
-cet_report_compiler_flags()
+#cet_report_compiler_flags()
 
 # these are minimum required versions, not the actual product versions
 find_ups_product( cetbuildtools v3_03_00 )
 find_ups_product( TRACE v3_03_00 )
-find_ups_product( artdaq v0_04_02 )
-find_ups_product( artdaq_utilities v1_00_00)
+find_ups_product( artdaq_utilities v1_00_00 )
 find_ups_product( artdaq_core v1_00_00 )
+find_ups_product( artdaq v3_09_00 )
 find_ups_product( art v1_06_00 )
-  find_ups_product( canvas v1_00_00 )
+find_ups_product( canvas v1_00_00 )
 find_ups_product( fhiclcpp v2_16_00 )
 find_ups_product( messagefacility v1_10_00 )
 #find_ups_product( cpp0x v1_03_00 )
@@ -72,7 +76,7 @@ find_ups_boost( v1_50_0 filesystem
                         program_options
                         unit_test_framework
  )
- find_ups_product( hdf5 v1_10_3)
+find_ups_product( hdf5 v1_12_0 )
 
  
 if( ${BTYPE_UC} MATCHES "DEBUG" )
@@ -105,14 +109,6 @@ list(GET CANVAS_VERSION_LIST 2 CANVAS_PATCH_VERSION)
 
 message("-DCANVAS_HEX_VERSION=0x${CANVAS_MAJOR_VERSION}${CANVAS_MINOR_VERSION}${CANVAS_PATCH_VERSION}")
 add_definitions(-DCANVAS_HEX_VERSION=0x${CANVAS_MAJOR_VERSION}${CANVAS_MINOR_VERSION}${CANVAS_PATCH_VERSION})
-
-# as of art v2_11_00, messagefacility has a single library
-check_ups_version(messagefacility $ENV{MESSAGEFACILITY_VERSION} v2_02_00 PRODUCT_MATCHES_VAR ONE_MF_LIBRARY)
-if(ONE_MF_LIBRARY)
-    set( MESSAGEFACILITY_LIBS MF_MessageLogger)
-else()
-    set( MESSAGEFACILITY_LIBS MF_MessageLogger MF_Utilities)
-endif()
 
 # macros for art_dictionary and simple_plugin
 include(ArtMake)

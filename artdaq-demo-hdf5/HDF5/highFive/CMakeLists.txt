@@ -11,7 +11,7 @@ simple_plugin(highFiveNtupleDataset "dataset"
  cetlib
  cetlib_except
  artdaq-demo-hdf5_HDF5
- artdaq-core_Data
+ artdaq_core::artdaq-core_Data
  artdaq_DAQdata
 )
 
@@ -21,7 +21,7 @@ simple_plugin(highFiveGroupedDataset "dataset"
  cetlib
  cetlib_except
  artdaq-demo-hdf5_HDF5
- artdaq-core_Data
+ artdaq_core::artdaq-core_Data
  artdaq_DAQdata
 )
 
@@ -31,7 +31,7 @@ simple_plugin(highFiveGeoCmpltPDSPSample "dataset"
  cetlib
  cetlib_except
  artdaq-demo-hdf5_HDF5
- artdaq-core_Data
+ artdaq_core::artdaq-core_Data
  artdaq_DAQdata
 )
 
@@ -41,7 +41,7 @@ simple_plugin(highFiveGeoSplitPDSPSample "dataset"
  cetlib
  cetlib_except
  artdaq-demo-hdf5_HDF5
- artdaq-core_Data
+ artdaq_core::artdaq-core_Data
  artdaq_DAQdata
 )
 
@@ -51,6 +51,6 @@ simple_plugin(highFiveTimeBasedPDSPSample "dataset"
  cetlib
  cetlib_except
  artdaq-demo-hdf5_HDF5
- artdaq-core_Data
+ artdaq_core::artdaq-core_Data
  artdaq_DAQdata
 )

@@ -11,8 +11,12 @@
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Persistency/Common/GroupQueryResult.h"
+#include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Utilities/DebugMacros.h"
 #include "canvas/Utilities/Exception.h"
+#if ART_HEX_VERSION < 0x30901
+#include "canvas/Utilities/WrappedTypeID.h"
+#endif
 #include "fhiclcpp/ParameterSet.h"
 
 #include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
@@ -126,7 +130,6 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 
 		result_handles = ep.getMany(mc, wrapped, art::MatchAllSelector{}, processTag);
 
-
 		for (auto const& result_handle : result_handles)
 		{
 			auto const raw_event_handle = RawEventHandle(result_handle);
@@ -154,7 +157,6 @@ void art::HDFFileOutput::write(EventPrincipal& ep)
 		ProcessTag const processTag{"", mc.moduleDescription().processName()};
 
 		result_handles = ep.getMany(mc, wrapped, art::MatchAllSelector{}, processTag);
-
 
 		for (auto const& result_handle : result_handles)
 		{
