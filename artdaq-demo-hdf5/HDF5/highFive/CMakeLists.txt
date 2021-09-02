@@ -5,7 +5,7 @@ if( NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/HighFive )
     include_directories(${CMAKE_CURRENT_BINARY_DIR}/HighFive)
 endif()
 
-simple_plugin(highFiveNtupleDataset "dataset" 
+basic_plugin(highFiveNtupleDataset "dataset" 
   ${HDF5_C_LIBRARIES}
  fhiclcpp
  cetlib
@@ -15,7 +15,7 @@ simple_plugin(highFiveNtupleDataset "dataset"
  artdaq_DAQdata
 )
 
-simple_plugin(highFiveGroupedDataset "dataset" 
+basic_plugin(highFiveGroupedDataset "dataset" 
   ${HDF5_C_LIBRARIES}
  fhiclcpp
  cetlib
@@ -25,7 +25,7 @@ simple_plugin(highFiveGroupedDataset "dataset"
  artdaq_DAQdata
 )
 
-simple_plugin(highFiveGeoCmpltPDSPSample "dataset" 
+basic_plugin(highFiveGeoCmpltPDSPSample "dataset" 
   ${HDF5_C_LIBRARIES}
  fhiclcpp
  cetlib
@@ -35,7 +35,7 @@ simple_plugin(highFiveGeoCmpltPDSPSample "dataset"
  artdaq_DAQdata
 )
 
-simple_plugin(highFiveGeoSplitPDSPSample "dataset" 
+basic_plugin(highFiveGeoSplitPDSPSample "dataset" 
   ${HDF5_C_LIBRARIES}
  fhiclcpp
  cetlib
@@ -45,7 +45,7 @@ simple_plugin(highFiveGeoSplitPDSPSample "dataset"
  artdaq_DAQdata
 )
 
-simple_plugin(highFiveTimeBasedPDSPSample "dataset" 
+basic_plugin(highFiveTimeBasedPDSPSample "dataset" 
   ${HDF5_C_LIBRARIES}
  fhiclcpp
  cetlib

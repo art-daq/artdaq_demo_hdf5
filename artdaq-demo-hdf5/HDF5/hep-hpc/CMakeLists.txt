@@ -1,4 +1,4 @@
-simple_plugin(FragmentNtuple "dataset" 
+basic_plugin(FragmentNtuple "dataset" 
 hep_hpc_hdf5
   ${HDF5_C_LIBRARIES}
  fhiclcpp
