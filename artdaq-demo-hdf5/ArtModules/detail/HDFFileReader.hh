@@ -11,8 +11,6 @@
 #include "artdaq-demo-hdf5/HDF5/MakeDatasetPlugin.hh"
 #include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 
-#include "art/Framework/Core/Frameworkfwd.h"
-
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
 #include "art/Framework/IO/Sources/SourceHelper.h"
