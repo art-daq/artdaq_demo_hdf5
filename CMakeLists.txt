@@ -14,7 +14,7 @@ set(CET_CETBUILDTOOLS_COMPAT TRUE)
 include(Compatibility)
 set(CET_WARN_DEPRECATED)
 
-project(artdaq_demo_hdf5 VERSION 1.03.01)
+project(artdaq_demo_hdf5 VERSION 1.03.02)
 
 set(CMAKE_MODULE_PATH
 	$ENV{ARTDAQ_UTILITIES_DIR}/Modules
