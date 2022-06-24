@@ -1,16 +1,14 @@
 
-simple_plugin(HDFFileOutput "module"
+include(BuildPlugins) # Art Module and Source
+
+cet_build_plugin(HDFFileOutput art::module LIBRARIES REG
   artdaq-demo-hdf5_HDF5
-  artdaq_DAQdata
-  art_Framework_IO
-  art_Framework_Services_Registry
+  art::Framework_IO
 )
 
-simple_plugin(HDFFileInput "source"
+cet_build_plugin(HDFFileInput art::source LIBRARIES REG
   artdaq-demo-hdf5_HDF5
-  artdaq_DAQdata
-  artdaq_utilities::artdaq-utilities_Plugins  
-  art_Framework_Services_Registry
+  artdaq::DAQdata
 )
 
 install_headers(SUBDIRS detail)

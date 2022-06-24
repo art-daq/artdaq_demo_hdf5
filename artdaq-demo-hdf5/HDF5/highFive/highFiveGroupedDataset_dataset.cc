@@ -15,7 +15,6 @@
 #include "artdaq-core/Data/ContainerFragmentLoader.hh"
 #include "artdaq-demo-hdf5/HDF5/FragmentDataset.hh"
 #include "artdaq-demo-hdf5/HDF5/highFive/HighFive/include/highfive/H5File.hpp"
-#include "canvas/Persistency/Provenance/EventID.h"
 
 namespace artdaq {
 namespace hdf5 {
