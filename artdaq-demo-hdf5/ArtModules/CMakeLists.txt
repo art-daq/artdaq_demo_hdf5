@@ -4,6 +4,7 @@ include(BuildPlugins) # Art Module and Source
 cet_build_plugin(HDFFileOutput art::module LIBRARIES REG
   artdaq-demo-hdf5_HDF5
   art::Framework_IO
+  artdaq::ArtModules
 )
 
 cet_build_plugin(HDFFileInput art::source LIBRARIES REG

@@ -11,7 +11,7 @@ cmake_minimum_required (VERSION 3.19 FATAL_ERROR)
 
 find_package(cetmodules 3.08.00 REQUIRED)
 
-project(artdaq_demo_hdf5 VERSION 1.03.02)
+project(artdaq_demo_hdf5 VERSION 1.04.00)
 
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -52,6 +52,8 @@ endif()
 
 find_package(art 3.09.03 REQUIRED)
 find_package(artdaq_utilities 1.07.02 REQUIRED)
+find_package(artdaq_core 3.09.00 REQUIRED)
+find_package(artdaq 3.12.00 REQUIRED)
 find_package( hdf5 1.12.0 REQUIRED )
  
 cet_register_export_set(SET_NAME artdaq_demo_hdf5 NAMESPACE artdaq_demo_hdf5)
