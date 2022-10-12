@@ -14,3 +14,6 @@ cet_build_plugin(highFiveGeoCmpltPDSPSample dataset )
 cet_build_plugin(highFiveGeoSplitPDSPSample dataset )
 
 cet_build_plugin(highFiveTimeBasedPDSPSample dataset)
+
+install_headers()
+install_source()
