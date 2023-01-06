@@ -35,24 +35,24 @@ namespace detail {
 struct HDFFileReader
 {
 	/**
-   * \brief Copy Constructor is deleted
-   */
+	 * \brief Copy Constructor is deleted
+	 */
 	HDFFileReader(HDFFileReader const&) = delete;
 
 	/**
-   * \brief Copy Assignment operator is deleted
-   * \return HDFFileReader copy
-   */
+	 * \brief Copy Assignment operator is deleted
+	 * \return HDFFileReader copy
+	 */
 	HDFFileReader& operator=(HDFFileReader const&) = delete;
 	/**
-   * \brief Move Constructor is deleted
-   */
+	 * \brief Move Constructor is deleted
+	 */
 	HDFFileReader(HDFFileReader&&) = delete;
 
 	/**
-   * \brief Move Assignment operator is deleted
-   * \return HDFFileReader copy
-   */
+	 * \brief Move Assignment operator is deleted
+	 * \return HDFFileReader copy
+	 */
 	HDFFileReader& operator=(HDFFileReader&&) = delete;
 
 	art::SourceHelper const& pmaker;                            ///< An art::SourceHelper instance
@@ -64,17 +64,17 @@ struct HDFFileReader
 	std::unique_ptr<artdaq::hdf5::FragmentDataset> inputFile_;  ///< The Dataset plugin which this input source will be reading from
 
 	/**
-   * \brief HDFFileReader Constructor
-   * \param ps ParameterSet used for configuring HDFFileReader
-   * \param help art::ProductRegistryHelper which is used to inform art about different Fragment types
-   * \param pm art::SourceHelper used to initalize the SourceHelper member
-   *
-   * \verbatim
-   * HDFFileReader accepts the following Parameters:
-   * "raw_data_label" (Default: "daq"): The label to use for all raw data
-   * "shared_memory_key" (Default: 0xBEE7): The key for the shared memory segment
-   * \endverbatim
-   */
+	 * \brief HDFFileReader Constructor
+	 * \param ps ParameterSet used for configuring HDFFileReader
+	 * \param help art::ProductRegistryHelper which is used to inform art about different Fragment types
+	 * \param pm art::SourceHelper used to initalize the SourceHelper member
+	 *
+	 * \verbatim
+	 * HDFFileReader accepts the following Parameters:
+	 * "raw_data_label" (Default: "daq"): The label to use for all raw data
+	 * "shared_memory_key" (Default: 0xBEE7): The key for the shared memory segment
+	 * \endverbatim
+	 */
 	HDFFileReader(fhicl::ParameterSet const& ps,
 	              art::ProductRegistryHelper& help,
 	              art::SourceHelper const& pm)
@@ -124,19 +124,19 @@ struct HDFFileReader
 	}
 
 	/**
-   * \brief HDFFileReader destructor
-   */
+	 * \brief HDFFileReader destructor
+	 */
 	virtual ~HDFFileReader() {}
 
 	/**
-   * \brief Emulate closing a file. No-Op.
-   */
+	 * \brief Emulate closing a file. No-Op.
+	 */
 	void closeCurrentFile() {}
 
 	/**
-   * \brief Emulate opening a file
-   * \param[out] fb art::FileBlock object
-   */
+	 * \brief Emulate opening a file
+	 * \param[out] fb art::FileBlock object
+	 */
 	void readFile(std::string const&, art::FileBlock*& fb)
 	{
 		TLOG_ARB(5, "HDFFileReader") << "readFile enter/start";
@@ -144,9 +144,9 @@ struct HDFFileReader
 	}
 
 	/**
-   * \brief Whether more data is expected from the HDFFileReader
-   * \return True unless a shutdown message has been received in readNext
-   */
+	 * \brief Whether more data is expected from the HDFFileReader
+	 * \return True unless a shutdown message has been received in readNext
+	 */
 	bool hasMoreData() const
 	{
 		TLOG(TLVL_DEBUG, "HDFFileReader") << "hasMoreData returning " << std::boolalpha << !shutdownMsgReceived;
@@ -154,15 +154,15 @@ struct HDFFileReader
 	}
 
 	/**
-   * \brief Dequeue a RawEvent and declare its Fragment contents to art, creating
-   * Run, SubRun, and EventPrincipal objects as necessary
-   * \param[in] inR Input art::RunPrincipal
-   * \param[in] inSR Input art::SubRunPrincipal
-   * \param[out] outR Output art::RunPrincipal
-   * \param[out] outSR  Output art::SubRunPrincipal
-   * \param[out] outE Output art::EventPrincipal
-   * \return Whether an event was returned
-   */
+	 * \brief Dequeue a RawEvent and declare its Fragment contents to art, creating
+	 * Run, SubRun, and EventPrincipal objects as necessary
+	 * \param[in] inR Input art::RunPrincipal
+	 * \param[in] inSR Input art::SubRunPrincipal
+	 * \param[out] outR Output art::RunPrincipal
+	 * \param[out] outSR  Output art::SubRunPrincipal
+	 * \param[out] outE Output art::EventPrincipal
+	 * \return Whether an event was returned
+	 */
 	bool readNext(art::RunPrincipal* const& inR, art::SubRunPrincipal* const& inSR, art::RunPrincipal*& outR,
 	              art::SubRunPrincipal*& outSR, art::EventPrincipal*& outE)
 	{
@@ -309,7 +309,6 @@ struct HDFFileReader
 
 		if (inSR == nullptr || subrun_check != inSR->subRunID())
 		{
-
 			outSR = pmaker.makeSubRunPrincipal(evtHeader->run_id, evtHeader->subrun_id, currentTime);
 		}
 		outE = pmaker.makeEventPrincipal(evtHeader->run_id, evtHeader->subrun_id, evtHeader->event_id, currentTime);

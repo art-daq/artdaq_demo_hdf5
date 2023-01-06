@@ -20,45 +20,45 @@ namespace artdaq {
 namespace hdf5 {
 /**
  * @brief Sample ProtoDUNE HDF5 writer that only writes certain Fragment types to output
-*/
+ */
 class HighFiveGeoSplitPDSPSample : public FragmentDataset
 {
 public:
 	/**
 	 * @brief HighFiveGeoSplitPDSPSample Constructor
 	 * @param ps ParameterSet for HighFiveGeoSplitPDSPSample
-	*/
+	 */
 	HighFiveGeoSplitPDSPSample(fhicl::ParameterSet const& ps);
 	/**
 	 * @brief HighFiveGeoSplitPDSPSample Destructor
-	*/
+	 */
 	virtual ~HighFiveGeoSplitPDSPSample();
 
 	/**
 	 * @brief Write a Fragment to HDF5
 	 * @param frag Fragment to write
-	*/
+	 */
 	void insertOne(artdaq::Fragment const& frag) override;
 	/**
 	 * @brief Write Fragments to HDF5
 	 * @param frags Fragments to write
-	*/
+	 */
 	void insertMany(artdaq::Fragments const& frags) override;
 	/**
 	 * @brief Write a RawEventHeader to HDF5
 	 * @param hdr Header to write
-	*/
+	 */
 	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
 	/**
 	 * @brief Read event data from HDF5
 	 * @return Fragment data organized by Fragment type
-	*/
+	 */
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
 	/**
 	 * @brief Read an Event Header from HDF55
 	 * @param seqID Sequence ID to read
 	 * @return Pointer to RawEventHeader
-	*/
+	 */
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
@@ -137,7 +137,7 @@ void artdaq::hdf5::HighFiveGeoSplitPDSPSample::insertOne(artdaq::Fragment const&
 				int counter = 1;
 				while (typeGroup.exist(containerName))
 				{
-					//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+					// TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
 					containerName = "Container" + std::to_string(counter);
 					counter++;
 				}
@@ -419,7 +419,7 @@ void artdaq::hdf5::HighFiveGeoSplitPDSPSample::writeFragment_(HighFive::Group& g
 	int counter = 1;
 	while (group.exist(datasetName))
 	{
-		//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+		// TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
 		datasetName = datasetNameBase + std::to_string(counter);
 		counter++;
 	}
@@ -443,8 +443,8 @@ void artdaq::hdf5::HighFiveGeoSplitPDSPSample::writeFragment_(HighFive::Group& g
 
 	fragDset.createAttribute("valid", fragHdr.valid);
 	fragDset.createAttribute("complete", fragHdr.complete);
-	//fragDset.createAttribute("atime_ns", fragHdr.atime_ns);
-	//fragDset.createAttribute("atime_s", fragHdr.atime_s);
+	// fragDset.createAttribute("atime_ns", fragHdr.atime_ns);
+	// fragDset.createAttribute("atime_s", fragHdr.atime_s);
 
 	double duneTime = fragHdr.timestamp * 0.000000020;
 	timespec tsp;

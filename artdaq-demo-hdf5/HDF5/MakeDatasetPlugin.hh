@@ -11,11 +11,11 @@
 namespace artdaq {
 namespace hdf5 {
 /**
-	 * \brief Load a FragmentDataset plugin
-	 * \param pset ParameterSet used to configure the FragmentDataset
-	 * \param plugin_label Name of the plugin
-	 * \return Pointer to the new FragmentDataset instance
-	 */
+ * \brief Load a FragmentDataset plugin
+ * \param pset ParameterSet used to configure the FragmentDataset
+ * \param plugin_label Name of the plugin
+ * \return Pointer to the new FragmentDataset instance
+ */
 std::unique_ptr<FragmentDataset>
 MakeDatasetPlugin(const fhicl::ParameterSet& pset,
                   const std::string& plugin_label);

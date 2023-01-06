@@ -2,8 +2,8 @@
 #define artdaq_demo_hdf5_hdf5_FragmentDataset_hh 1
 
 #include "artdaq-core/Data/Fragment.hh"
-#include "artdaq-core/Plugins/FragmentNameHelper.hh"
 #include "artdaq-core/Data/RawEvent.hh"
+#include "artdaq-core/Plugins/FragmentNameHelper.hh"
 #include "cetlib/compiler_macros.h"
 #include "fhiclcpp/ParameterSet.h"
 
@@ -13,8 +13,8 @@ namespace artdaq {
 namespace hdf5 {
 
 /**
-	 * @brief Tag for whether this FragmentDataset is for reading or for writing
-	 */
+ * @brief Tag for whether this FragmentDataset is for reading or for writing
+ */
 enum class FragmentDatasetMode : uint8_t
 {
 	Read = 0,  ///< This FragmentDataset is reading from a file (not supported by hep_hpc backend)

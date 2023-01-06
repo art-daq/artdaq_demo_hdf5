@@ -27,38 +27,38 @@ public:
 	/**
 	 * @brief HighFiveGeoCmpltPDSPSample Constructor
 	 * @param ps ParameterSet for HighFiveGeoCmpltPDSPSample
-	*/
+	 */
 	HighFiveGeoCmpltPDSPSample(fhicl::ParameterSet const& ps);
 	/**
 	 * @brief HighFiveGeoCmpltPDSPSample Destructor
-	*/
+	 */
 	virtual ~HighFiveGeoCmpltPDSPSample();
 
 	/**
 	 * @brief Write a Fragment to HDF5
 	 * @param frag Fragment to write
-	*/
+	 */
 	void insertOne(artdaq::Fragment const& frag) override;
 	/**
 	 * @brief Write Fragments to HDF5
 	 * @param frags Fragments to write
-	*/
+	 */
 	void insertMany(artdaq::Fragments const& frags) override;
 	/**
 	 * @brief Write a RawEventHeader to HDF5
 	 * @param hdr Header to write
-	*/
+	 */
 	void insertHeader(artdaq::detail::RawEventHeader const& hdr) override;
 	/**
 	 * @brief Read event data from HDF5
 	 * @return Fragment data organized by Fragment type
-	*/
+	 */
 	std::unordered_map<artdaq::Fragment::type_t, std::unique_ptr<artdaq::Fragments>> readNextEvent() override;
 	/**
 	 * @brief Read an Event Header from HDF55
 	 * @param seqID Sequence ID to read
 	 * @return Pointer to RawEventHeader
-	*/
+	 */
 	std::unique_ptr<artdaq::detail::RawEventHeader> getEventHeader(artdaq::Fragment::sequence_id_t const& seqID) override;
 
 private:
@@ -149,7 +149,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 				int counter = 1;
 				while (typeGroup.exist(containerName))
 				{
-					//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+					// TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
 					containerName = "Container" + std::to_string(counter);
 					counter++;
 				}
@@ -217,8 +217,8 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertOne(artdaq::Fragment const&
 	}
 	else if (frag.type() == 5)  // Timing
 	{
-		//TLOG(TLVL_INSERTONE) << "insertOne: Writing Timing Fragment";
-		//writeFragment_(timeSliceGroup, frag);
+		// TLOG(TLVL_INSERTONE) << "insertOne: Writing Timing Fragment";
+		// writeFragment_(timeSliceGroup, frag);
 	}
 	else
 	{
@@ -255,8 +255,8 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::insertHeader(artdaq::detail::RawE
 	}
 	auto timeSliceGroup = file_->getGroup(std::to_string(timeSliceGroupTimeStamp));
 	timeSliceGroup.createAttribute("run_id", hdr.run_id);
-	//timeSliceGroup.createAttribute("subrun_id", hdr.subrun_id);
-	//timeSliceGroup.createAttribute("event_id", hdr.event_id);
+	// timeSliceGroup.createAttribute("subrun_id", hdr.subrun_id);
+	// timeSliceGroup.createAttribute("event_id", hdr.event_id);
 	timeSliceGroup.createAttribute("source_event_id", hdr.event_id);
 
 	timeSliceGroup.createAttribute("time_slice_start", timeSliceGroupTimeStamp);
@@ -518,7 +518,7 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 	int counter = 1;
 	while (group.exist(datasetName))
 	{
-		//TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
+		// TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Duplicate Fragment ID " << frag.fragmentID() << " detected. If this is a ContainerFragment, this is expected, otherwise check configuration!";
 		datasetName = datasetNameBase + std::to_string(counter);
 		counter++;
 	}
@@ -529,23 +529,23 @@ void artdaq::hdf5::HighFiveGeoCmpltPDSPSample::writeFragment_(HighFive::Group& g
 
 	TLOG(TLVL_WRITEFRAGMENT) << "writeFragment_: Creating Attributes from Fragment Header";
 	auto fragHdr = frag.fragmentHeader();
-	//fragDset.createAttribute("word_count", fragHdr.word_count);
-	//fragDset.createAttribute("fragment_data_size", frag.size() - frag.headerSizeWords());
-	//fragDset.createAttribute("version", fragHdr.version);
+	// fragDset.createAttribute("word_count", fragHdr.word_count);
+	// fragDset.createAttribute("fragment_data_size", frag.size() - frag.headerSizeWords());
+	// fragDset.createAttribute("version", fragHdr.version);
 	fragDset.createAttribute("fragment_type", fragHdr.type);
-	//fragDset.createAttribute("metadata_word_count", fragHdr.metadata_word_count);
+	// fragDset.createAttribute("metadata_word_count", fragHdr.metadata_word_count);
 
 	fragDset.createAttribute("number_of_frames", numberOfFrames);
 	fragDset.createAttribute("size_in_bytes", (numberOfFrames * 58));
 
-	//fragDset.createAttribute("fragment_id", fragHdr.fragment_id);
+	// fragDset.createAttribute("fragment_id", fragHdr.fragment_id);
 
-	//fragDset.createAttribute("timestamp", fragHdr.timestamp);
+	// fragDset.createAttribute("timestamp", fragHdr.timestamp);
 
-	//fragDset.createAttribute("valid", fragHdr.valid);
-	//fragDset.createAttribute("complete", fragHdr.complete);
-	//fragDset.createAttribute("atime_ns", fragHdr.atime_ns);
-	//fragDset.createAttribute("atime_s", fragHdr.atime_s);
+	// fragDset.createAttribute("valid", fragHdr.valid);
+	// fragDset.createAttribute("complete", fragHdr.complete);
+	// fragDset.createAttribute("atime_ns", fragHdr.atime_ns);
+	// fragDset.createAttribute("atime_s", fragHdr.atime_s);
 
 	fragDset.createAttribute("first_frame_timestamp", firstFrameTimeStamp);
 	fragDset.createAttribute("first_frame_time_string", createTimeString(firstFrameTimeStamp));
