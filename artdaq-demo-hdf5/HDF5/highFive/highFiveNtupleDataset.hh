@@ -15,8 +15,8 @@ namespace artdaq {
 namespace hdf5 {
 
 /**
-	 * @brief An implementation of FragmentDataset using the HighFive backend to produce files identical to those produced by the hep_hpc backend (FragmentNtuple)
-	 */
+ * @brief An implementation of FragmentDataset using the HighFive backend to produce files identical to those produced by the hep_hpc backend (FragmentNtuple)
+ */
 class HighFiveNtupleDataset : public FragmentDataset
 {
 public:
@@ -26,10 +26,10 @@ public:
 	 *
 	 * HighFiveNtupleDataset accepts the following Parameters:
 	 * "mode" (Default: "write"): Mode string to use for this FragmentDataset
-     * "nWordsPerRow" (Default: 10240): Number of payload words to store in each row of the Dataset
-     * "payloadChunkSize" (Default: 128): Size of the payload Ntuple's chunks, in rows
+	 * "nWordsPerRow" (Default: 10240): Number of payload words to store in each row of the Dataset
+	 * "payloadChunkSize" (Default: 128): Size of the payload Ntuple's chunks, in rows
 	 * "chunkCacheSizeBytes" (Default: 10 chunks): Size of the chunk cache, in bytes
-     * "fileName" (REQUIRED): HDF5 file to read/write
+	 * "fileName" (REQUIRED): HDF5 file to read/write
 	 */
 	HighFiveNtupleDataset(fhicl::ParameterSet const& ps);
 
@@ -83,4 +83,4 @@ private:
 };
 }  // namespace hdf5
 }  // namespace artdaq
-#endif  //artdaq_demo_hdf5_HDF5_highFive_HighFiveNtupleDataset_hh
+#endif  // artdaq_demo_hdf5_HDF5_highFive_HighFiveNtupleDataset_hh

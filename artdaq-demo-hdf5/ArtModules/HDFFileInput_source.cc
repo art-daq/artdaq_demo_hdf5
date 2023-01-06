@@ -8,9 +8,9 @@ using std::string;
 
 namespace art {
 /**
-	* \brief  Specialize an art source trait to tell art that we don't care about
-	* source.fileNames and don't want the files services to be used.
-	*/
+ * \brief  Specialize an art source trait to tell art that we don't care about
+ * source.fileNames and don't want the files services to be used.
+ */
 template<>
 struct Source_generator<artdaq::detail::HDFFileReader>
 {
@@ -19,8 +19,8 @@ struct Source_generator<artdaq::detail::HDFFileReader>
 }  // namespace art
 namespace artdaq {
 /**
-	 * \brief HDFFileInput is a typedef of art::Source<detail::HDFFileReader>
-	 */
+ * \brief HDFFileInput is a typedef of art::Source<detail::HDFFileReader>
+ */
 using HDFFileInput = art::Source<detail::HDFFileReader>;
 }  // namespace artdaq
 

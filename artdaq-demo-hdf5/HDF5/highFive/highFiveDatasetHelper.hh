@@ -7,10 +7,10 @@ namespace artdaq {
 namespace hdf5 {
 
 /**
-	 * @brief Helper class for HighFiveNtupleDataset
-	 *
-	 * This class represents a column in an Ntuple-formatted group of datasets
-	 */
+ * @brief Helper class for HighFiveNtupleDataset
+ *
+ * This class represents a column in an Ntuple-formatted group of datasets
+ */
 class HighFiveDatasetHelper
 {
 public:
@@ -135,4 +135,4 @@ private:
 }  // namespace hdf5
 }  // namespace artdaq
 
-#endif  //artdaq_demo_hdf5_HDF5_highFive_highFiveDatasetHelper_hh
+#endif  // artdaq_demo_hdf5_HDF5_highFive_highFiveDatasetHelper_hh

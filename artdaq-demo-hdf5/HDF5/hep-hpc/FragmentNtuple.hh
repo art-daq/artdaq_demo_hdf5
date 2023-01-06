@@ -36,7 +36,7 @@ public:
 	 *
 	 * FragmentNtuple accepts the following Parameters:
 	 * "mode" (Default: "write"): Mode string to use for this FragmentDataset
-     * "nWordsPerRow" (Default: 10240): Number of Fragment words to store in each row of the Ntuple
+	 * "nWordsPerRow" (Default: 10240): Number of Fragment words to store in each row of the Ntuple
 	 */
 	FragmentNtuple(fhicl::ParameterSet const& ps, hep_hpc::hdf5::File const& file);
 
@@ -47,7 +47,7 @@ public:
 	 * FragmentNtuple accepts the following Parameters:
 	 * "fileName" (Default: "fragments.hdf5"): File name to use
 	 * "mode" (Default: "write"): Mode string to use for this FragmentDataset (only "write" mode is supported)
-     * "nWordsPerRow" (Default: 10240): Number of Fragment words to store in each row of the Ntuple
+	 * "nWordsPerRow" (Default: 10240): Number of Fragment words to store in each row of the Ntuple
 	 */
 	FragmentNtuple(fhicl::ParameterSet const& ps);
 
@@ -99,4 +99,4 @@ private:
 };
 }  // namespace hdf5
 }  // namespace artdaq
-#endif  //artdaq_demo_hdf5_ArtModules_detail_FragmentNtuple
+#endif  // artdaq_demo_hdf5_ArtModules_detail_FragmentNtuple

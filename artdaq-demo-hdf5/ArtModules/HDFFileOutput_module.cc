@@ -12,10 +12,10 @@
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Persistency/Common/GroupQueryResult.h"
 #include "art/Persistency/Provenance/ModuleContext.h"
+#include "canvas/Persistency/Common/WrappedTypeID.h"
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Utilities/DebugMacros.h"
 #include "canvas/Utilities/Exception.h"
-#include "canvas/Persistency/Common/WrappedTypeID.h"
 #include "fhiclcpp/ParameterSet.h"
 
 #include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
